@@ -57,6 +57,7 @@
     .category-dot { width: 9px; height: 9px; border-radius: 50%; }
     .dot-class { background: var(--green); } .dot-shift { background: var(--coral); } .dot-event { background: var(--blue); }
     .dot-assignment { background: #b49437; } .dot-study { background: #477e97; }
+    .dot-exam { background: #bd7048; }
     .sidebar-foot { margin-top: auto; padding: 13px 11px 0; color: #858d86; font-size: 10px; line-height: 1.7; border-top: 1px solid #e0e4dc; }
     .main { min-width: 0; padding: 28px clamp(18px, 3vw, 44px) 40px; }
     .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 28px; }
@@ -95,6 +96,8 @@
     .day-heads { display: grid; grid-template-columns: 54px repeat(7, minmax(0, 1fr)); position: sticky; top: 0; z-index: 2; background: white; border-bottom: 1px solid var(--line); }
     .day-head { min-height: 58px; padding: 10px 4px 8px; text-align: center; border-left: 1px solid #f0f1ed; }
     .day-head .day-name { display: block; color: var(--muted); font-size: 10px; }
+    .day-head.weekend-sunday .day-name, .month-weekday.weekend-sunday { color: #bf6a56; }
+    .day-head.weekend-saturday .day-name, .month-weekday.weekend-saturday { color: #4d7b9a; }
     .day-head .day-number { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-top: 2px; border-radius: 50%; font-size: 13px; font-weight: 600; }
     .day-head.today .day-number { color: white; background: var(--green); }
     .week-body { display: grid; grid-template-columns: 54px repeat(7, minmax(0, 1fr)); }
@@ -105,17 +108,19 @@
     .day-column { border-left: 1px solid #f0f1ed; }
     .hour-line { position: absolute; left: 0; right: 0; border-top: 1px solid #eff0ec; pointer-events: none; }
     .hour-line.half { border-top-style: dashed; border-color: #f3f4f1; }
-    .day-column.today { background: #fcfdf9; }
-    .event { position: absolute; z-index: 1; left: 4px; right: 4px; min-height: 35px; overflow: hidden; padding: 6px 7px; border: 0; border-left: 3px solid; border-radius: 4px; text-align: left; cursor: pointer; }
+    .day-column.today { background: #f5faf5; }
+    .day-column.weekend-sunday { background-color: #fffaf8; }
+    .day-column.weekend-saturday { background-color: #f8fbfd; }
+    .event { position: absolute; z-index: 1; left: 4px; right: 4px; min-height: 35px; overflow: hidden; padding: 6px 7px; border: 0; border-left: 3px solid; border-radius: 5px; text-align: left; cursor: pointer; box-shadow: 0 1px 2px rgba(33, 49, 40, .08); }
     .event-title { display: block; overflow: hidden; font-size: 10px; line-height: 1.35; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
     .event-meta { display: block; margin-top: 3px; overflow: hidden; opacity: .78; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-    .event.class { color: #285d48; background: var(--green-soft); border-color: var(--green); }
-    .event.shift { color: #a04c3d; background: var(--coral-soft); border-color: var(--coral); }
-    .event.tutoring { color: #a04c3d; background: var(--coral-soft); border-color: var(--coral); }
-    .event.correction { color: #705b20; background: #f5efd9; border-color: #b49437; }
-    .event.assignment { color: #705b20; background: #f5efd9; border-color: #b49437; }
-    .event.study { color: #3c6682; background: #e4edf3; border-color: #4d7b9a; }
-    .event.event-type { color: #3c6682; background: var(--blue-soft); border-color: var(--blue); }
+    .event.class { color: #174b2e; background: #ccebd5; border-color: #23834a; }
+    .event.shift, .event.tutoring { color: #79291c; background: #ffd6ce; border-color: #e6533d; }
+    .event.correction { color: #5e4700; background: #ffefad; border-color: #d29a00; }
+    .event.assignment { color: #704000; background: #ffe0a8; border-color: #db8500; }
+    .event.study { color: #17476d; background: #cde7ff; border-color: #287fc0; }
+    .event.exam { color: #732b4f; background: #f7d3e3; border-color: #c9487a; }
+    .event.event-type { color: #075767; background: #c7edf0; border-color: #18899a; }
     .empty-state { display: none; min-height: 220px; padding: 70px 20px; text-align: center; color: var(--muted); font-size: 13px; }
     .agenda { display: none; padding: 8px 19px 18px; }
     .agenda-day { display: grid; grid-template-columns: 76px minmax(0, 1fr); padding: 13px 0; border-bottom: 1px solid #eff0ec; }
@@ -123,25 +128,31 @@
     .agenda-date strong { display: block; margin-top: 4px; color: var(--ink); font-size: 17px; }
     .agenda-items { display: grid; gap: 7px; }
     .agenda-item { display: flex; align-items: center; gap: 10px; border: 0; padding: 7px 9px; border-radius: 5px; text-align: left; cursor: pointer; }
-    .agenda-item.class { background: var(--green-soft); color: #285d48; } .agenda-item.shift, .agenda-item.tutoring { background: var(--coral-soft); color: #a04c3d; } .agenda-item.correction { background: #f5efd9; color: #705b20; } .agenda-item.event-type { background: var(--blue-soft); color: #3c6682; }
-    .agenda-item.assignment { background: #f5efd9; color: #705b20; } .agenda-item.study { background: #e4edf3; color: #3c6682; }
+    .agenda-item.class { background: #ccebd5; color: #174b2e; } .agenda-item.shift, .agenda-item.tutoring { background: #ffd6ce; color: #79291c; } .agenda-item.correction { background: #ffefad; color: #5e4700; } .agenda-item.event-type { background: #c7edf0; color: #075767; }
+    .agenda-item.assignment { background: #ffe0a8; color: #704000; } .agenda-item.study { background: #cde7ff; color: #17476d; }
+    .agenda-item.exam { background: #f7d3e3; color: #732b4f; }
     .agenda-time { font-size: 10px; font-weight: 700; white-space: nowrap; } .agenda-name { font-size: 11px; font-weight: 600; }
-    .month-view { display: none; padding: 8px; }
-    .month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .month-view { display: none; padding: 10px; }
+    .month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
     .month-weekday { padding: 8px 3px; color: var(--muted); text-align: center; font-size: 10px; font-weight: 700; border-bottom: 1px solid var(--line); }
-    .month-cell { min-width: 0; min-height: 104px; padding: 6px 4px; border-right: 1px solid #eff0ec; border-bottom: 1px solid #eff0ec; cursor: pointer; }
-    .month-cell:nth-child(7n) { border-right: 0; }
-    .month-cell.outside { background: #fafbf8; color: #a4aaa5; }
-    .month-day-number { display: grid; width: 25px; height: 25px; place-items: center; margin: 0 auto 3px 0; border-radius: 50%; font-size: 11px; }
+    .month-cell { min-width: 0; min-height: 104px; padding: 6px 5px; border: 1px solid #edf0e9; border-radius: 6px; background: white; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+    .month-cell:hover { border-color: #c9d9cd; background: #fbfdf9; }
+    .month-cell.outside { background: #f5f6f2; color: #a4aaa5; }
+    .month-cell.weekend-sunday { background-color: #fffaf8; }
+    .month-cell.weekend-saturday { background-color: #f8fbfd; }
+    .month-day-number { display: grid; width: 27px; height: 27px; place-items: center; margin: 0 auto 5px 0; border-radius: 50%; font-size: 12px; font-weight: 600; }
+    .month-cell.today { border-color: #8fb5a0; background: #f4faf5; }
     .month-cell.today .month-day-number { color: white; background: var(--green); }
-    .month-events { display: grid; gap: 3px; }
-    .month-event { overflow: hidden; padding: 3px 4px; border-left: 2px solid; border-radius: 3px; font-size: 9px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
-    .month-event.class { color: #285d48; background: var(--green-soft); border-color: var(--green); }
-    .month-event.shift, .month-event.tutoring { color: #a04c3d; background: var(--coral-soft); border-color: var(--coral); }
-    .month-event.correction { color: #705b20; background: #f5efd9; border-color: #b49437; }
-    .month-event.assignment { color: #705b20; background: #f5efd9; border-color: #b49437; }
-    .month-event.study { color: #3c6682; background: #e4edf3; border-color: #4d7b9a; }
-    .month-event.event-type { color: #3c6682; background: var(--blue-soft); border-color: var(--blue); }
+    .month-events { display: grid; gap: 4px; }
+    .month-event { overflow: hidden; padding: 4px 5px; border-left: 2px solid; border-radius: 4px; font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+    .month-event-count { color: var(--muted); font-size: 9px; padding-left: 3px; }
+    .month-event.class { color: #174b2e; background: #ccebd5; border-color: #23834a; }
+    .month-event.shift, .month-event.tutoring { color: #79291c; background: #ffd6ce; border-color: #e6533d; }
+    .month-event.correction { color: #5e4700; background: #ffefad; border-color: #d29a00; }
+    .month-event.assignment { color: #704000; background: #ffe0a8; border-color: #db8500; }
+    .month-event.study { color: #17476d; background: #cde7ff; border-color: #287fc0; }
+    .month-event.exam { color: #732b4f; background: #f7d3e3; border-color: #c9487a; }
+    .month-event.event-type { color: #075767; background: #c7edf0; border-color: #18899a; }
     .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center; padding: 18px; background: #18211dcc; }
     .modal-backdrop.open { display: flex; }
     .modal { width: min(100%, 470px); max-height: 92vh; overflow-y: auto; padding: 23px; background: white; border-radius: 9px; box-shadow: var(--shadow); }
@@ -190,15 +201,17 @@
       body[data-view="week"] .app { padding-bottom: 0; }
       body[data-view="week"] .summary-row { display: none; }
       .sidebar { display: none; }
-      .main { padding: 22px 13px 28px; }
-      .topbar { align-items: center; margin-bottom: 18px; }
-      h1 { font-size: 21px; }
-      .eyebrow { font-size: 9px; }
+      .main { padding: 18px 12px 28px; }
+      .topbar { align-items: center; margin-bottom: 14px; }
+      h1 { font-size: 22px; }
+      .eyebrow { font-size: 10px; }
       .top-actions { gap: 6px; }
       .top-actions .today-btn { display: none; }
       .top-actions .break-mobile-button { display: inline-flex; width: 39px; padding: 0; }
+      .top-actions .export-button { display: inline-flex; width: 44px; min-width: 44px; padding: 0; }
       .top-actions .primary-btn { width: 39px; padding: 0; font-size: 0; }
       .top-actions .primary-btn svg { width: 18px; height: 18px; }
+      .today-btn, .primary-btn, .icon-btn { min-width: 44px; min-height: 44px; }
       .export-button { width: 39px; padding: 0; font-size: 0; }
       .export-button svg { width: 18px; height: 18px; }
       .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
@@ -206,11 +219,11 @@
       .summary-label { font-size: 9px; white-space: nowrap; }
       .summary-value { font-size: 17px; margin-top: 2px; }
       .summary-mark { display: none; }
-      .calendar-toolbar { min-height: 57px; padding: 0 10px; }
-      .week-title { font-size: 12px; }
-      .week-control { gap: 3px; }
-      .week-control .icon-btn { width: 28px; height: 28px; }
-      .view-switch button { min-height: 32px; padding: 6px 8px; font-size: 9px; }
+      .calendar-toolbar { min-height: 0; padding: 10px 12px; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+      .week-title { font-size: 14px; }
+      .week-control { width: 100%; justify-content: space-between; gap: 6px; }
+      .week-control .icon-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+      .view-switch button { min-height: 40px; min-width: 46px; padding: 7px 10px; font-size: 12px; white-space: nowrap; }
       .calendar { min-width: 0; }
       .calendar { --hour-px: 32px; }
       .calendar-scroll { max-height: min(58vh, 500px); overflow-x: hidden; overflow-y: auto; }
@@ -220,15 +233,36 @@
       .time-label { right: 3px; font-size: 8px; }
       .day-head { padding-inline: 1px; }
       .day-head .day-name { font-size: 9px; }
+      .day-head .day-number { width: 28px; height: 28px; font-size: 12px; }
       .event { left: 1px; right: 1px; padding: 4px 2px; border-left-width: 2px; }
-      .event-title { font-size: 8px; }
-      .event-meta { font-size: 7px; }
-      .month-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-      .month-cell { min-height: 76px; padding: 4px 2px; }
-      .month-event { font-size: 8px; padding: 3px 2px; }
+      .event-title { font-size: 9px; white-space: normal; line-height: 1.15; }
+      .event-meta { display: none; }
+      .month-view { padding: 7px; }
+      .month-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+      .month-weekday { padding: 8px 1px; font-size: 11px; }
+      .month-cell { min-height: 76px; padding: 4px 3px; }
+      .month-day-number { width: 27px; height: 27px; margin-bottom: 4px; font-size: 12px; }
+      .month-events { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+      .month-event { display: inline-block; width: 9px; min-width: 9px; height: 9px; min-height: 9px; padding: 0; border: 0; border-radius: 50%; font-size: 0; box-shadow: 0 0 0 1px #ffffff inset; }
+      .month-event.class { background: #23834a; }
+      .month-event.shift, .month-event.tutoring { background: #e6533d; }
+      .month-event.correction { background: #d29a00; }
+      .month-event.assignment { background: #db8500; }
+      .month-event.study { background: #287fc0; }
+      .month-event.exam { background: #c9487a; }
+      .month-event.event-type { background: #18899a; }
+      .month-event-count { display: block; width: max-content; margin-top: 3px; padding: 2px 4px; color: #53625a; background: #edf1eb; border-radius: 4px; font-size: 10px; font-weight: 700; }
       .mobile-add { position: fixed; z-index: 3; right: 17px; bottom: 16px; display: grid; place-items: center; width: 50px; height: 50px; color: white; background: var(--green); border: 0; border-radius: 50%; box-shadow: 0 5px 16px #284c3b55; }
       .mobile-add svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2; }
       .modal { padding: 19px; }
+      .field input, .field select, .field textarea, .side-date input { min-height: 44px; padding: 10px 12px; font-size: 16px; }
+      .field textarea { min-height: 80px; }
+      .nav-item, .export-menu button, .category-toggle { min-height: 44px; font-size: 14px; }
+      .weekday-chip { min-width: 44px; min-height: 44px; font-size: 14px; }
+      .secondary-btn, .delete-btn, .close-btn, .break-remove { min-height: 44px; font-size: 14px; }
+      .modal-actions .primary-btn { min-height: 44px; font-size: 14px; }
+      .time-label { font-size: 10px; }
+      .day-head .day-name { font-size: 11px; font-weight: 700; }
     }
     @media print {
       @page { size: landscape; margin: 10mm; }
@@ -278,11 +312,12 @@
           <label class="category-toggle"><input type="checkbox" checked data-filter="event"><span class="category-dot dot-event"></span>その他の予定</label>
           <label class="category-toggle"><input type="checkbox" checked data-filter="assignment"><span class="category-dot dot-assignment"></span>提出物・締切</label>
           <label class="category-toggle"><input type="checkbox" checked data-filter="study"><span class="category-dot dot-study"></span>勉強スケジュール</label>
+          <label class="category-toggle"><input type="checkbox" checked data-filter="exam"><span class="category-dot dot-exam"></span>テスト・試験</label>
         </div>
       </div>
       <div>
         <p class="side-label">学事カレンダー</p>
-        <button class="nav-item" id="breakSettingsButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg>長期休みを設定<span class="nav-count" id="breakCount">0</span></button>
+        <button class="nav-item" id="breakSettingsButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg>大学休み・休講日<span class="nav-count" id="breakCount">0</span></button>
         <button class="nav-item" id="semesterSettingsButton" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18M7 13h3m4 0h3M7 17h3"/></svg>4学期の期間を設定</button>
         <button class="nav-item" id="wageSettingsButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v20m5-16H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H6"/></svg>バイト給与を設定</button>
       </div>
@@ -293,7 +328,7 @@
         <div><div class="eyebrow">MY CAMPUS LIFE</div><h1>今週の予定</h1></div>
         <div class="top-actions">
           <button class="today-btn" id="todayButton" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>今日</button>
-          <button class="today-btn break-mobile-button" id="breakMobileButton" type="button" aria-label="長期休みを設定" title="長期休みを設定"><svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg></button>
+          <button class="today-btn break-mobile-button" id="breakMobileButton" type="button" aria-label="大学休み・休講日を設定" title="大学休み・休講日"><svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg></button>
           <button class="today-btn break-mobile-button" id="semesterMobileButton" type="button" aria-label="4学期の期間を設定" title="4学期の期間を設定"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18M7 13h3m4 0h3M7 17h3"/></svg></button>
           <div class="export-wrap">
             <button class="today-btn export-button" id="exportButton" type="button" aria-label="予定を出力" aria-expanded="false" title="予定を出力"><svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 17v4h14v-4"/></svg>出力</button>
@@ -332,7 +367,7 @@
       <form id="eventForm">
         <div class="form-grid">
           <div class="field full"><label for="eventName">予定の名前</label><input id="eventName" name="title" maxlength="60" required placeholder="例：ミクロ経済学、カフェのシフト"></div>
-          <div class="field"><label for="eventType">種類</label><select id="eventType" name="type"><option value="class">大学の授業</option><option value="tutoring">塾バイト</option><option value="correction">添削バイト</option><option value="assignment">提出物・締切</option><option value="study">勉強スケジュール</option><option value="shift">その他のバイト</option><option value="event">その他の予定</option></select></div>
+          <div class="field"><label for="eventType">種類</label><select id="eventType" name="type"><option value="class">大学の授業</option><option value="exam">テスト・試験</option><option value="tutoring">塾バイト</option><option value="correction">添削バイト</option><option value="assignment">提出物・締切</option><option value="study">勉強スケジュール</option><option value="shift">その他のバイト</option><option value="event">その他の予定</option></select></div>
           <div class="field"><label for="eventLocation">場所</label><input id="eventLocation" name="location" maxlength="60" placeholder="教室・店舗など"></div>
           <div class="work-fields field full" id="workFields" hidden><label for="eventWorkId">勤務先</label><select id="eventWorkId" name="workId"></select></div>
           <div class="work-fields field full" id="workUnitsField" hidden><label for="eventWorkUnits">添削した件数</label><input id="eventWorkUnits" name="workUnits" type="number" min="0" step="1" value="1"></div>
@@ -355,15 +390,16 @@
   </div>
   <div class="modal-backdrop" id="breakBackdrop" role="presentation">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="breakHeading">
-      <div class="modal-top"><h2 class="modal-title" id="breakHeading">長期休みの設定</h2><button class="close-btn" id="closeBreakModal" type="button" aria-label="閉じる">×</button></div>
+      <div class="modal-top"><h2 class="modal-title" id="breakHeading">大学休み・休講日の設定</h2><button class="close-btn" id="closeBreakModal" type="button" aria-label="閉じる">×</button></div>
       <form id="breakForm">
         <div class="form-grid">
-          <div class="field full"><label for="breakName">休みの名前</label><input id="breakName" name="name" maxlength="50" required placeholder="例：夏休み"></div>
+          <div class="field full"><label for="breakName">休みの名前</label><input id="breakName" name="name" maxlength="50" required placeholder="例：夏休み、創立記念日、休講日"></div>
           <div class="field"><label for="breakStart">開始日</label><input id="breakStart" name="start" type="date" required></div>
           <div class="field"><label for="breakEnd">終了日</label><input id="breakEnd" name="end" type="date" required></div>
         </div>
         <div class="modal-actions"><span class="spacer"></span><button class="secondary-btn" id="cancelBreakModal" type="button">閉じる</button><button class="primary-btn" type="submit">休みを追加</button></div>
       </form>
+      <p class="date-hint">1日だけの休講は開始日と終了日を同じ日にします。その日は繰り返し授業を自動で表示しません。</p>
       <div class="break-list" id="breakList"></div>
     </section>
   </div>
@@ -396,14 +432,14 @@
     const reminderKeysStorageKey = "komorebi-planner-notified-v1";
     const notificationsEnabledKey = "komorebi-planner-notifications-enabled-v1";
     const weekdayNames = ["日", "月", "火", "水", "木", "金", "土"];
-    const categoryLabels = { class: "大学の授業", shift: "アルバイト", tutoring: "塾バイト", correction: "添削バイト", assignment: "提出物・締切", study: "勉強", event: "その他の予定" };
-    const colors = { class: "class", shift: "shift", tutoring: "tutoring", correction: "correction", assignment: "assignment", study: "study", event: "event-type" };
+    const categoryLabels = { class: "大学の授業", exam: "テスト・試験", shift: "アルバイト", tutoring: "塾バイト", correction: "添削バイト", assignment: "提出物・締切", study: "勉強", event: "その他の予定" };
+    const colors = { class: "class", exam: "exam", shift: "shift", tutoring: "tutoring", correction: "correction", assignment: "assignment", study: "study", event: "event-type" };
     const now = new Date();
     let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let editingId = null;
     let viewMode = "week";
     let calendarScrollHour = 6;
-    let activeFilters = new Set(["class", "shift", "event", "assignment", "study"]);
+    let activeFilters = new Set(["class", "exam", "shift", "event", "assignment", "study"]);
     let breaks = loadBreaks();
     let semesters = loadSemesters();
     let wageProfiles = loadWageProfiles();
@@ -546,7 +582,7 @@
       const dateKey = localDateString(date);
       if (breaks.some(period => period.start <= dateKey && period.end >= dateKey)) return false;
       const semester = event.semester ? semesters.find(period => period.id === Number(event.semester)) : null;
-      return !(semester?.start && semester?.end && (dateKey < semester.start || dateKey > semester.end));
+      return !(semester && ((semester.start && dateKey < semester.start) || (semester.end && dateKey > semester.end)));
     }
     function getWeekEvents() {
       const weekStart = weekStartOf(selectedDate);
@@ -692,7 +728,7 @@
       for (let day = 0; day < 7; day += 1) {
         const date = addDays(weekStart, day);
         const head = document.createElement("div");
-        head.className = `day-head${localDateString(date) === localDateString(now) ? " today" : ""}`;
+        head.className = `day-head${localDateString(date) === localDateString(now) ? " today" : ""}${day === 0 ? " weekend-sunday" : day === 6 ? " weekend-saturday" : ""}`;
         head.innerHTML = `<span class="day-name">${weekdayNames[day]}</span><span class="day-number">${date.getDate()}</span>`;
         heads.append(head);
       }
@@ -712,7 +748,7 @@
       for (let day = 0; day < 7; day += 1) {
         const date = addDays(weekStart, day);
         const column = document.createElement("div");
-        column.className = `day-column${localDateString(date) === localDateString(now) ? " today" : ""}`;
+        column.className = `day-column${localDateString(date) === localDateString(now) ? " today" : ""}${day === 0 ? " weekend-sunday" : day === 6 ? " weekend-saturday" : ""}`;
         for (let hour = 0; hour <= 24; hour += 1) {
           const line = document.createElement("div");
           line.className = "hour-line";
@@ -767,9 +803,9 @@
       if (viewMode !== "month") return;
       const grid = document.createElement("div");
       grid.className = "month-grid";
-      weekdayNames.forEach(name => {
+      weekdayNames.forEach((name, dayIndex) => {
         const heading = document.createElement("div");
-        heading.className = "month-weekday";
+        heading.className = `month-weekday${dayIndex === 0 ? " weekend-sunday" : dayIndex === 6 ? " weekend-saturday" : ""}`;
         heading.textContent = name;
         grid.append(heading);
       });
@@ -781,7 +817,7 @@
         const cellDate = addDays(gridStart, index);
         const dateKey = localDateString(cellDate);
         const cell = document.createElement("div");
-        cell.className = `month-cell${cellDate.getMonth() !== date.getMonth() ? " outside" : ""}${dateKey === localDateString(now) ? " today" : ""}`;
+        cell.className = `month-cell${cellDate.getMonth() !== date.getMonth() ? " outside" : ""}${dateKey === localDateString(now) ? " today" : ""}${cellDate.getDay() === 0 ? " weekend-sunday" : cellDate.getDay() === 6 ? " weekend-saturday" : ""}`;
         cell.setAttribute("role", "button");
         cell.setAttribute("tabindex", "0");
         cell.setAttribute("aria-label", `${cellDate.getMonth() + 1}月${cellDate.getDate()}日の週を表示`);
@@ -790,23 +826,31 @@
         dayNumber.textContent = String(cellDate.getDate());
         const list = document.createElement("div");
         list.className = "month-events";
-        getEventsForDate(cellDate).slice(0, 3).forEach(event => {
+        const dayEvents = getEventsForDate(cellDate);
+        const compactMonth = matchMedia("(max-width: 680px)").matches;
+        dayEvents.slice(0, compactMonth ? 4 : 3).forEach(event => {
           const item = document.createElement("button");
           item.type = "button";
           item.className = `month-event ${colors[event.type]}`;
-          item.textContent = `${event.start} ${event.title}`;
+          item.textContent = compactMonth ? "" : `${event.start} ${event.title}`;
           item.title = `${event.title} · ${durationLabel(event)}`;
+          item.setAttribute("aria-label", `${categoryLabels[event.type] ?? "予定"}: ${event.title}, ${event.start}`);
           item.addEventListener("click", click => {
             click.stopPropagation();
             openModal(event);
           });
           list.append(item);
         });
-        const extraCount = getEventsForDate(cellDate).length - 3;
-        if (extraCount > 0) {
+        const extraCount = dayEvents.length - (compactMonth ? 4 : 3);
+        if (compactMonth && dayEvents.length > 0) {
+          const count = document.createElement("span");
+          count.className = "month-event-count";
+          count.textContent = `${dayEvents.length}件`;
+          list.append(count);
+        } else if (extraCount > 0) {
           const more = document.createElement("span");
           more.className = "month-event-count";
-          more.style.cssText = "color:var(--muted);font-size:9px;padding-left:3px";
+          more.className = "month-event-count";
           more.textContent = `+${extraCount}件`;
           list.append(more);
         }
@@ -835,8 +879,8 @@
       const title = isMonth
         ? `${selectedDate.getFullYear()}年 ${selectedDate.getMonth() + 1}月`
         : formatRange(weekStartOf(selectedDate), addDays(weekStartOf(selectedDate), 6));
-      const colorFor = { class: "#dcebe1", tutoring: "#f4dfd9", shift: "#f4dfd9", correction: "#f2e9c9", assignment: "#f2e9c9", study: "#dfeaf0", event: "#dfeaf0" };
-      const accentFor = { class: "#387a62", tutoring: "#d96b55", shift: "#d96b55", correction: "#a4862d", assignment: "#a4862d", study: "#4d7b9a", event: "#4d7b9a" };
+      const colorFor = { class: "#ccebd5", exam: "#f7d3e3", tutoring: "#ffd6ce", shift: "#ffd6ce", correction: "#ffefad", assignment: "#ffe0a8", study: "#cde7ff", event: "#c7edf0" };
+      const accentFor = { class: "#174b2e", exam: "#732b4f", tutoring: "#79291c", shift: "#79291c", correction: "#5e4700", assignment: "#704000", study: "#17476d", event: "#075767" };
       const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${isMonth ? 1060 : 900}" viewBox="0 0 ${width} ${isMonth ? 1060 : 900}">`, `<rect width="100%" height="100%" fill="#fbfbf7"/>`, `<text x="40" y="48" font-family="sans-serif" font-size="15" fill="#387a62">KOMOREBI · CAMPUS PLANNER</text>`, `<text x="40" y="88" font-family="sans-serif" font-size="28" font-weight="700" fill="#202b2a">${escapeXml(title)}</text>`];
       if (isMonth) {
         const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
@@ -1158,6 +1202,10 @@
         document.getElementById("eventStart").value = "19:00";
         document.getElementById("eventEnd").value = "20:00";
         document.getElementById("eventReminder").checked = false;
+      } else if (event.target.value === "exam") {
+        document.getElementById("eventStart").value = "09:00";
+        document.getElementById("eventEnd").value = "11:00";
+        document.getElementById("eventReminder").checked = true;
       }
     });
     document.getElementById("eventWorkId").addEventListener("change", updateWorkUnitVisibility);
