@@ -59,6 +59,31 @@
     .dot-assignment { background: #b49437; } .dot-study { background: #477e97; }
     .dot-exam { background: #bd7048; }
     .sidebar-foot { margin-top: auto; padding: 13px 11px 0; color: #858d86; font-size: 10px; line-height: 1.7; border-top: 1px solid #e0e4dc; }
+    .primary-nav { display: grid; gap: 4px; }
+    .mobile-page-tabs { display: none; }
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+    body[data-page="timetable"] .top-actions { display: none; }
+    .timetable-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 18px; }
+    .timetable-toolbar p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .timetable-content { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.2fr); gap: 18px; align-items: start; }
+    .timetable-section { min-width: 0; padding: 18px; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    .timetable-section h2 { margin: 0 0 16px; font-size: 16px; }
+    .course-form { display: grid; gap: 12px; }
+    .course-form .form-grid { grid-template-columns: 1fr; }
+    .course-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .course-list { display: grid; gap: 8px; }
+    .course-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px; background: #f8faf6; border: 1px solid #e8ede6; border-left: 4px solid var(--green); border-radius: 6px; }
+    .course-row-main { min-width: 0; }
+    .course-row-title { font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .course-row-meta { margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .course-row-actions { display: flex; gap: 4px; }
+    .course-row-actions button { min-width: 42px; min-height: 40px; padding: 4px 8px; border: 1px solid var(--line); background: #fff; border-radius: 5px; font-size: 11px; cursor: pointer; }
+    .period-list { display: grid; gap: 8px; }
+    .period-row { display: grid; grid-template-columns: 56px 1fr 1fr; gap: 8px; align-items: center; }
+    .period-row strong { font-size: 12px; }
+    .period-row input { min-width: 0; width: 100%; min-height: 40px; padding: 8px; border: 1px solid #dfe3dc; border-radius: 6px; font-size: 14px; }
+    .timetable-empty { padding: 28px 16px; color: var(--muted); text-align: center; font-size: 13px; }
     .main { min-width: 0; padding: 28px clamp(18px, 3vw, 44px) 40px; }
     .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 28px; }
     .eyebrow { color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
@@ -196,6 +221,7 @@
       .main { padding-inline: 20px; }
       .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
       .summary { padding-inline: 12px; }
+      .timetable-content { grid-template-columns: 1fr; }
     }
     @media (max-width: 680px) {
       .app { display: block; padding-bottom: 62px; }
@@ -203,6 +229,9 @@
       body[data-view="week"] .summary-row { display: none; }
       .sidebar { display: none; }
       .main { padding: 18px 12px 28px; }
+      .mobile-page-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0 0 14px; padding: 4px; background: #e9eee7; border-radius: 8px; }
+      .mobile-page-tabs button { min-height: 42px; border: 0; border-radius: 6px; color: #66736a; background: transparent; font-size: 14px; font-weight: 600; }
+      .mobile-page-tabs button.active { color: #174b2e; background: #fff; box-shadow: 0 1px 3px #20302018; }
       .topbar { align-items: center; margin-bottom: 14px; }
       h1 { font-size: 22px; }
       .eyebrow { font-size: 10px; }
@@ -216,6 +245,11 @@
       .export-button { width: 39px; padding: 0; font-size: 0; }
       .export-button svg { width: 18px; height: 18px; }
       .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
+      .timetable-toolbar { align-items: flex-start; flex-direction: column; }
+      .timetable-toolbar .secondary-btn { width: 100%; }
+      .timetable-section { padding: 14px; }
+      .period-row { grid-template-columns: 48px 1fr 1fr; gap: 6px; }
+      .course-row { padding: 10px; }
       .summary { min-height: 69px; display: block; padding: 10px; }
       .summary-label { font-size: 9px; white-space: nowrap; }
       .summary-value { font-size: 17px; margin-top: 2px; }
@@ -310,8 +344,9 @@
       </div>
       <div>
         <p class="side-label">MENU</p>
-        <nav class="side-nav" aria-label="メニュー">
-          <button class="nav-item active" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/></svg>週の予定</button>
+        <nav class="side-nav primary-nav" aria-label="メニュー">
+          <button class="nav-item active" id="plannerNav" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/></svg>予定カレンダー</button>
+          <button class="nav-item" id="timetableNav" type="button"><svg viewBox="0 0 24 24"><path d="M3 5h18M3 12h18M3 19h18M8 3v18m8-18v18"/></svg>履修時間割</button>
           <button class="nav-item" type="button" id="navToday"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>今日の予定<span class="nav-count" id="todayCount">0</span></button>
         </nav>
       </div>
@@ -353,6 +388,42 @@
           <button class="primary-btn" id="addButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>予定を追加</button>
         </div>
       </header>
+      <nav class="mobile-page-tabs" aria-label="ページ切替"><button class="active" id="plannerTab" type="button">予定</button><button id="timetableTab" type="button">時間割</button></nav>
+      <section class="page-view" id="timetablePage" aria-label="履修時間割">
+        <div class="timetable-toolbar">
+          <div><h2 style="margin:0;font-size:20px">履修時間割</h2><p>時限の時間は一度設定すれば、科目登録で繰り返し使えます。</p></div>
+          <button class="secondary-btn" id="togglePeriods" type="button">時限の時間を設定</button>
+        </div>
+        <div class="timetable-section" id="periodSettings" hidden style="margin-bottom:16px">
+          <h2>時限時間</h2>
+          <div class="period-list" id="periodList"></div>
+          <div class="course-actions" style="margin-top:12px"><button class="primary-btn" id="savePeriods" type="button">時限を保存</button></div>
+        </div>
+        <div class="timetable-content">
+          <section class="timetable-section">
+            <h2 id="courseFormHeading">履修科目を追加</h2>
+            <form class="course-form" id="courseForm">
+              <div class="field"><label for="courseName">科目名</label><input id="courseName" name="title" maxlength="60" required placeholder="例：ミクロ経済学"></div>
+              <div class="field"><label>開講曜日</label><div class="weekday-picker" id="courseWeekdays"></div></div>
+              <div class="form-grid">
+                <div class="field"><label for="coursePeriod">時限</label><select id="coursePeriod" name="period" required></select></div>
+                <div class="field"><label for="courseLocation">教室</label><input id="courseLocation" name="location" maxlength="60" placeholder="例：G棟 302"></div>
+                <div class="field"><label for="courseInstructor">担当教員</label><input id="courseInstructor" name="instructor" maxlength="60" placeholder="任意"></div>
+                <div class="field"><label for="courseCredits">単位</label><input id="courseCredits" name="credits" type="number" min="0" max="30" step="0.5" value="2"></div>
+                <div class="field"><label for="courseAcademicYear">年度</label><select id="courseAcademicYear" name="academicYear"><option value="">年度指定なし</option></select></div>
+                <div class="field"><label for="courseSemester">履修学期</label><select id="courseSemester" name="semester"><option value="">学期指定なし</option><option value="1">第1学期</option><option value="2">第2学期</option><option value="3">第3学期</option><option value="4">第4学期</option></select></div>
+              </div>
+              <label class="repeat-field"><input id="courseReminder" name="reminder" type="checkbox"><span>授業前に通知</span><select id="courseReminderMinutes" name="reminderMinutes" aria-label="授業通知のタイミング"><option value="5">5分前</option><option value="10" selected>10分前</option><option value="15">15分前</option><option value="30">30分前</option></select></label>
+              <div class="course-actions"><button class="secondary-btn" id="cancelCourseEdit" type="button" hidden>編集をやめる</button><button class="primary-btn" id="saveCourse" type="submit">科目を登録</button></div>
+            </form>
+          </section>
+          <section class="timetable-section">
+            <h2>登録した科目</h2>
+            <div class="course-list" id="courseList"></div>
+          </section>
+        </div>
+      </section>
+      <div class="page-view active" id="plannerPage">
       <section class="summary-row" aria-label="今週の集計">
         <div class="summary"><div><div class="summary-label">今週の授業</div><div class="summary-value" id="classSummary">0<span style="font-size:11px;font-weight:500;color:#78817d"> コマ</span></div></div><span class="summary-mark mark-green"><svg viewBox="0 0 24 24"><path d="M4 19V5l8 6 8-6v14M4 19h16"/></svg></span></div>
         <div class="summary"><div><div class="summary-label">バイトシフト</div><div class="summary-value" id="shiftSummary">0<span style="font-size:11px;font-weight:500;color:#78817d"> 回</span></div></div><span class="summary-mark mark-coral"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM7 7V4h10v3M3 12h18m-11 0v2h4v-2"/></svg></span></div>
@@ -374,6 +445,7 @@
         <div class="agenda" id="agenda"></div>
         <div class="empty-state" id="emptyState">この週に予定はありません。<br>右上の「予定を追加」から登録できます。</div>
       </section>
+      </div>
     </main>
   </div>
   <button class="mobile-add" id="mobileAdd" type="button" aria-label="予定を追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -383,11 +455,11 @@
       <form id="eventForm">
         <div class="form-grid">
           <div class="field full"><label for="eventName">予定の名前</label><input id="eventName" name="title" maxlength="60" required placeholder="例：ミクロ経済学、カフェのシフト"></div>
-          <div class="field"><label for="eventType">種類</label><select id="eventType" name="type"><option value="class">大学の授業</option><option value="exam">テスト・試験</option><option value="tutoring">塾バイト</option><option value="correction">添削バイト</option><option value="assignment">提出物・締切</option><option value="study">勉強スケジュール</option><option value="shift">その他のバイト</option><option value="event">その他の予定</option></select></div>
+          <div class="field"><label for="eventType">種類</label><select id="eventType" name="type"><option value="event">その他の予定</option><option value="exam">テスト・試験</option><option value="tutoring">塾バイト</option><option value="correction">添削バイト</option><option value="assignment">提出物・締切</option><option value="study">勉強スケジュール</option><option value="shift">その他のバイト</option><option value="class" id="legacyClassOption" hidden disabled>授業（旧データ）</option></select></div>
           <div class="field"><label for="eventLocation">場所</label><input id="eventLocation" name="location" maxlength="60" placeholder="教室・店舗など"></div>
           <div class="work-fields field full" id="workFields" hidden><label for="eventWorkId">勤務先</label><select id="eventWorkId" name="workId"></select></div>
           <div class="work-fields field full" id="workUnitsField" hidden><label for="eventWorkUnits">添削した件数</label><input id="eventWorkUnits" name="workUnits" type="number" min="0" step="1" value="1"></div>
-          <div class="course-fields" id="courseFields">
+          <div class="course-fields" id="courseFields" hidden>
             <div class="field"><label for="eventInstructor">担当教員</label><input id="eventInstructor" name="instructor" maxlength="60" placeholder="例：山田先生"></div>
             <div class="field"><label for="eventCredits">単位数</label><input id="eventCredits" name="credits" type="number" min="0" max="30" step="0.5" value="2"></div>
             <div class="field full"><label for="eventSemester">履修学期</label><select id="eventSemester" name="semester"><option value="">学期を指定しない</option><option value="1">第1学期</option><option value="2">第2学期</option><option value="3">第3学期</option><option value="4">第4学期</option></select></div>
@@ -421,10 +493,11 @@
   </div>
   <div class="modal-backdrop" id="semesterBackdrop" role="presentation">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="semesterHeading">
-      <div class="modal-top"><h2 class="modal-title" id="semesterHeading">4学期の期間設定</h2><button class="close-btn" id="closeSemesterModal" type="button" aria-label="閉じる">×</button></div>
+      <div class="modal-top"><h2 class="modal-title" id="semesterHeading">年度ごとの学期期間</h2><button class="close-btn" id="closeSemesterModal" type="button" aria-label="閉じる">×</button></div>
       <form id="semesterForm">
+        <div class="field"><label for="semesterYearSelect">設定する年度</label><select id="semesterYearSelect" name="academicYear"></select></div>
         <div class="form-grid" id="semesterFields"></div>
-        <div class="modal-actions"><span class="spacer"></span><button class="secondary-btn" id="cancelSemesterModal" type="button">キャンセル</button><button class="primary-btn" type="submit">期間を保存</button></div>
+        <div class="modal-actions"><button class="secondary-btn" id="addSemesterYear" type="button">次年度を追加</button><span class="spacer"></span><button class="secondary-btn" id="cancelSemesterModal" type="button">キャンセル</button><button class="primary-btn" type="submit">期間を保存</button></div>
       </form>
     </section>
   </div>
@@ -445,12 +518,15 @@
     const breaksStorageKey = "komorebi-planner-breaks-v1";
     const semestersStorageKey = "komorebi-planner-semesters-v1";
     const wagesStorageKey = "komorebi-planner-wages-v1";
+    const timetableStorageKey = "komorebi-planner-timetable-v1";
+    const periodsStorageKey = "komorebi-planner-periods-v1";
     const reminderKeysStorageKey = "komorebi-planner-notified-v1";
     const notificationsEnabledKey = "komorebi-planner-notifications-enabled-v1";
     const weekdayNames = ["日", "月", "火", "水", "木", "金", "土"];
     const categoryLabels = { class: "大学の授業", exam: "テスト・試験", shift: "アルバイト", tutoring: "塾バイト", correction: "添削バイト", assignment: "提出物・締切", study: "勉強", event: "その他の予定" };
     const colors = { class: "class", exam: "exam", shift: "shift", tutoring: "tutoring", correction: "correction", assignment: "assignment", study: "study", event: "event-type" };
     const now = new Date();
+    let selectedAcademicYear = now.getFullYear();
     let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let editingId = null;
     let viewMode = "week";
@@ -459,6 +535,10 @@
     let breaks = loadBreaks();
     let semesters = loadSemesters();
     let wageProfiles = loadWageProfiles();
+    let periods = loadPeriods();
+    let courses = loadCourses();
+    saveCourses();
+    let editingCourseId = null;
     let notificationsEnabled = localStorage.getItem(notificationsEnabledKey) === "true";
     let notifiedReminders = loadNotifiedReminders();
 
@@ -484,10 +564,15 @@
     function loadSemesters() {
       try {
         const saved = JSON.parse(localStorage.getItem(semestersStorageKey));
-        return Array.isArray(saved) ? saved : Array.from({ length: 4 }, (_, index) => ({ id: index + 1, start: "", end: "" }));
+        if (!Array.isArray(saved)) return [];
+        return saved.map(period => ({
+          ...period,
+          id: Number(period.id),
+          year: Number(period.year) || Number(period.start?.slice(0, 4)) || now.getFullYear()
+        }));
       } catch (error) {
         console.warn("学期期間を読み込めませんでした。", error);
-        return Array.from({ length: 4 }, (_, index) => ({ id: index + 1, start: "", end: "" }));
+        return [];
       }
     }
     function saveSemesters() { localStorage.setItem(semestersStorageKey, JSON.stringify(semesters)); }
@@ -506,6 +591,50 @@
       }
     }
     function saveWageProfiles() { localStorage.setItem(wagesStorageKey, JSON.stringify(wageProfiles)); }
+    function defaultPeriods() {
+      return [
+        { id: 1, name: "1限", start: "09:00", end: "10:30" },
+        { id: 2, name: "2限", start: "10:50", end: "12:20" },
+        { id: 3, name: "3限", start: "13:20", end: "14:50" },
+        { id: 4, name: "4限", start: "15:00", end: "16:30" },
+        { id: 5, name: "5限", start: "16:40", end: "18:10" },
+        { id: 6, name: "6限", start: "18:20", end: "19:50" }
+      ];
+    }
+    function loadPeriods() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(periodsStorageKey));
+        return Array.isArray(saved) && saved.length ? saved : defaultPeriods();
+      } catch (error) {
+        return defaultPeriods();
+      }
+    }
+    function savePeriods() { localStorage.setItem(periodsStorageKey, JSON.stringify(periods)); }
+    function loadCourses() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(timetableStorageKey));
+        if (!Array.isArray(saved)) return [];
+        return saved.map(course => {
+          if (course.start && course.end && course.periodId != null) {
+            const linked = periods.find(period => period.id === Number(course.periodId));
+            if (linked && (Math.abs(minutesFromTime(linked.start) - minutesFromTime(course.start)) > 15 || Math.abs(minutesFromTime(linked.end) - minutesFromTime(course.end)) > 15)) {
+              return { ...course, periodId: null };
+            }
+          }
+          if (course.periodId != null || !course.start || !course.end) return course;
+          const nearest = periods.reduce((match, period) => {
+            const startDistance = Math.abs(minutesFromTime(period.start) - minutesFromTime(course.start));
+            const endDistance = Math.abs(minutesFromTime(period.end) - minutesFromTime(course.end));
+            const distance = Math.max(startDistance, endDistance);
+            return !match || distance < match.distance ? { period, distance } : match;
+          }, null);
+          return nearest?.distance <= 15 ? { ...course, periodId: nearest.period.id } : course;
+        });
+      } catch (error) {
+        return [];
+      }
+    }
+    function saveCourses() { localStorage.setItem(timetableStorageKey, JSON.stringify(courses)); }
 
     function localDateString(date) {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -559,12 +688,59 @@
       return initial;
     }
     let events = loadEvents();
+    const legacyCourses = events.filter(event => event.type === "class" && event.recurring);
+    if (legacyCourses.length) {
+      const knownCourseIds = new Set(courses.map(course => course.id));
+      legacyCourses.forEach(event => {
+        if (!knownCourseIds.has(event.id)) {
+          const exactPeriod = periods.find(item => item.start === event.start && item.end === event.end);
+          const nearestPeriod = periods.reduce((nearest, item) => {
+            const startDistance = Math.abs(minutesFromTime(item.start) - minutesFromTime(event.start));
+            const endDistance = Math.abs(minutesFromTime(item.end) - minutesFromTime(event.end));
+            const distance = Math.max(startDistance, endDistance);
+            return !nearest || distance < nearest.distance ? { item, distance } : nearest;
+          }, null);
+          const period = exactPeriod ?? (nearestPeriod?.distance <= 15 ? nearestPeriod.item : null);
+          courses.push({
+            id: event.id,
+            title: event.title,
+            days: event.days ?? [(event.day + 1) % 7],
+            periodId: period?.id ?? null,
+            start: event.start,
+            end: event.end,
+            location: event.location ?? "",
+            instructor: event.instructor ?? "",
+            credits: Number(event.credits) || 0,
+            semester: event.semester ?? null
+          });
+        }
+      });
+      events = events.filter(event => !(event.type === "class" && event.recurring));
+      saveCourses();
+      saveEvents();
+    }
     function saveEvents() { localStorage.setItem(storageKey, JSON.stringify(events)); }
     function recurringDays(event) { return event.days ?? [(event.day + 1) % 7]; }
     function filterKey(type) { return ["shift", "tutoring", "correction"].includes(type) ? "shift" : type; }
     function isWorkEvent(event) { return ["shift", "tutoring", "correction"].includes(event.type); }
     function defaultWorkId(type) { return type === "correction" ? "job2" : type === "shift" ? "job3" : "job1"; }
     function workProfileFor(event) { return wageProfiles.find(profile => profile.id === (event.workId ?? defaultWorkId(event.type))) ?? wageProfiles[0]; }
+    function courseAsEvent(course) {
+      const period = periods.find(item => item.id === Number(course.periodId));
+      return {
+        ...course,
+        type: "class",
+        recurring: true,
+        days: course.days ?? [],
+        start: period?.start ?? course.start ?? "09:00",
+        end: period?.end ?? course.end ?? "10:30",
+        location: course.location ?? "",
+        instructor: course.instructor ?? "",
+        semester: course.semester ?? null,
+        academicYear: course.academicYear ?? null,
+        source: "timetable"
+      };
+    }
     function calculateMonthPay(date) {
       const totals = wageProfiles.map(profile => ({ ...profile, amount: 0, shifts: 0, units: 0, hours: 0 }));
       const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -595,15 +771,24 @@
     function formatYen(amount) { return `¥${Math.round(amount).toLocaleString("ja-JP")}`; }
     function classIsInSession(event, date) {
       if (event.type !== "class") return true;
+      if (event.academicYear && date.getFullYear() !== Number(event.academicYear)) return false;
       const dateKey = localDateString(date);
       if (breaks.some(period => period.start <= dateKey && period.end >= dateKey)) return false;
-      const semester = event.semester ? semesters.find(period => period.id === Number(event.semester)) : null;
+      const semester = event.semester ? semesters.find(period => period.id === Number(event.semester) && period.year === Number(event.academicYear ?? date.getFullYear())) : null;
       return !(semester && ((semester.start && dateKey < semester.start) || (semester.end && dateKey > semester.end)));
+    }
+    function openCalendarEvent(event) {
+      if (event.source === "timetable") {
+        setAppPage("timetable");
+        editCourse(event.id);
+        return;
+      }
+      openModal(event);
     }
     function getWeekEvents() {
       const weekStart = weekStartOf(selectedDate);
       const weekEnd = addDays(weekStart, 7);
-      return events.flatMap(event => {
+      const appointmentEvents = events.flatMap(event => {
         if (!activeFilters.has(filterKey(event.type))) return [];
         if (!event.recurring) {
           const date = parseDate(event.date);
@@ -614,15 +799,25 @@
           const date = addDays(weekStart, day);
           return classIsInSession(event, date) ? [{ ...event, displayDate: date, dayIndex: day }] : [];
         });
-      }).sort((a, b) => a.dayIndex - b.dayIndex || a.start.localeCompare(b.start));
+      });
+      const timetableEvents = courses.flatMap(course => {
+        const event = courseAsEvent(course);
+        if (!activeFilters.has("class")) return [];
+        return recurringDays(event).flatMap(day => {
+          const date = addDays(weekStart, day);
+          return classIsInSession(event, date) ? [{ ...event, displayDate: date, dayIndex: day }] : [];
+        });
+      });
+      return [...appointmentEvents, ...timetableEvents].sort((a, b) => a.dayIndex - b.dayIndex || a.start.localeCompare(b.start));
     }
     function getEventsForDate(date) {
       const dateKey = localDateString(date);
       const day = date.getDay();
-      return events.filter(event => activeFilters.has(filterKey(event.type)) && classIsInSession(event, date) && (event.recurring
+      const appointmentEvents = events.filter(event => activeFilters.has(filterKey(event.type)) && classIsInSession(event, date) && (event.recurring
         ? recurringDays(event).includes(day)
         : event.date === dateKey))
-        .sort((a, b) => a.start.localeCompare(b.start));
+      const timetableEvents = activeFilters.has("class") ? courses.map(courseAsEvent).filter(event => recurringDays(event).includes(day) && classIsInSession(event, date)) : [];
+      return [...appointmentEvents, ...timetableEvents].sort((a, b) => a.start.localeCompare(b.start));
     }
     function formatTime(date) { return `${date.getMonth() + 1}/${date.getDate()}`; }
     function formatRange(start, end) {
@@ -676,7 +871,7 @@
     function checkUpcomingReminders() {
       if (!notificationsEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
       const current = new Date();
-      events.filter(event => event.reminder).forEach(event => {
+      [...events, ...courses.map(courseAsEvent)].filter(event => event.reminder).forEach(event => {
         const dates = [];
         if (event.recurring) {
           for (let offset = 0; offset <= 7; offset += 1) {
@@ -704,7 +899,9 @@
     function updateSummary(weekEvents) {
       const classes = weekEvents.filter(event => event.type === "class").length;
       const shifts = weekEvents.filter(event => ["shift", "tutoring", "correction"].includes(event.type)).length;
-      const credits = [...new Map(events.filter(event => event.type === "class").map(event => [event.id, Number(event.credits) || 0])).values()].reduce((sum, value) => sum + value, 0);
+      const eventCredits = events.filter(event => event.type === "class").reduce((sum, event) => sum + (Number(event.credits) || 0), 0);
+      const timetableCredits = [...new Map(courses.map(course => [course.id, Number(course.credits) || 0])).values()].reduce((sum, value) => sum + value, 0);
+      const credits = eventCredits + timetableCredits;
       document.getElementById("classSummary").innerHTML = `${classes}<span style="font-size:11px;font-weight:500;color:#78817d"> コマ</span>`;
       document.getElementById("shiftSummary").innerHTML = `${shifts}<span style="font-size:11px;font-weight:500;color:#78817d"> 回</span>`;
       document.getElementById("totalSummary").innerHTML = `${weekEvents.length}<span style="font-size:11px;font-weight:500;color:#78817d"> 件</span>`;
@@ -790,7 +987,7 @@
           block.innerHTML = `<span class="event-title"></span><span class="event-meta"></span>`;
           block.querySelector(".event-title").textContent = event.title;
           block.querySelector(".event-meta").textContent = durationLabel(event);
-          block.addEventListener("click", () => openModal(event));
+          block.addEventListener("click", () => openCalendarEvent(event));
           column.append(block);
         });
         body.append(column);
@@ -853,7 +1050,7 @@
           item.setAttribute("aria-label", `${categoryLabels[event.type] ?? "予定"}: ${event.title}, ${event.start}`);
           item.addEventListener("click", click => {
             click.stopPropagation();
-            openModal(event);
+            openCalendarEvent(event);
           });
           list.append(item);
         });
@@ -980,7 +1177,7 @@
           item.innerHTML = `<span class="agenda-time"></span><span class="agenda-name"></span>`;
           item.querySelector(".agenda-time").textContent = `${event.start} - ${event.end}`;
           item.querySelector(".agenda-name").textContent = `${event.title}${event.location ? ` · ${event.location}` : ""}`;
-          item.addEventListener("click", () => openModal(event));
+          item.addEventListener("click", () => openCalendarEvent(event));
           list.append(item);
         });
         agenda.append(row);
@@ -993,12 +1190,15 @@
       document.getElementById("modalHeading").textContent = event ? "予定を編集" : "予定を追加";
       document.getElementById("deleteEvent").hidden = !event;
       document.getElementById("eventName").value = event?.title ?? "";
-      document.getElementById("eventType").value = event?.type ?? "class";
+      const legacyClassOption = document.getElementById("legacyClassOption");
+      legacyClassOption.disabled = event?.type !== "class";
+      legacyClassOption.hidden = event?.type !== "class";
+      document.getElementById("eventType").value = event?.type ?? "event";
       populateWorkOptions(event?.workId ?? defaultWorkId(event?.type ?? "tutoring"));
-      syncWorkFields(event?.type ?? "class", event?.workId);
+      syncWorkFields(event?.type ?? "event", event?.workId);
       document.getElementById("eventLocation").value = event?.location ?? "";
       document.getElementById("eventInstructor").value = event?.instructor ?? "";
-      document.getElementById("eventCredits").value = event?.credits ?? 2;
+      document.getElementById("eventCredits").value = event?.credits ?? 0;
       document.getElementById("eventSemester").value = event?.semester ?? "";
       document.getElementById("eventDate").value = event?.recurring
         ? localDateString(addDays(weekStartOf(selectedDate), recurringDays(event)[0]))
@@ -1013,7 +1213,8 @@
       const selectedDays = event?.recurring ? recurringDays(event) : [parseDate(document.getElementById("eventDate").value).getDay()];
       document.querySelectorAll("[name='weekdays']").forEach(input => { input.checked = selectedDays.includes(Number(input.value)); });
       document.getElementById("weekdayField").hidden = !event?.recurring;
-      document.getElementById("courseFields").style.display = (event?.type ?? "class") === "class" ? "contents" : "none";
+      document.getElementById("courseFields").hidden = event?.type !== "class";
+      document.getElementById("courseFields").style.display = event?.type === "class" ? "contents" : "none";
       document.getElementById("modalBackdrop").classList.add("open");
       document.getElementById("eventName").focus();
     }
@@ -1035,7 +1236,68 @@
       label.className = "weekday-chip";
       label.innerHTML = `<input type="checkbox" name="weekdays" value="${day}"><span>${name}</span>`;
       document.getElementById("weekdayPicker").append(label);
+      const courseLabel = document.createElement("label");
+      courseLabel.className = "weekday-chip";
+      courseLabel.innerHTML = `<input type="checkbox" name="courseDays" value="${day}"><span>${name}</span>`;
+      document.getElementById("courseWeekdays").append(courseLabel);
     });
+    document.getElementById("plannerNav").addEventListener("click", () => setAppPage("planner"));
+    document.getElementById("timetableNav").addEventListener("click", () => setAppPage("timetable"));
+    document.getElementById("plannerTab").addEventListener("click", () => setAppPage("planner"));
+    document.getElementById("timetableTab").addEventListener("click", () => setAppPage("timetable"));
+    document.getElementById("togglePeriods").addEventListener("click", () => {
+      const panel = document.getElementById("periodSettings");
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) renderPeriods();
+    });
+    document.getElementById("savePeriods").addEventListener("click", () => {
+      const updates = periods.map(period => {
+        const start = document.querySelector(`[data-period="${period.id}"][data-edge="start"]`).value;
+        const end = document.querySelector(`[data-period="${period.id}"][data-edge="end"]`).value;
+        return { ...period, start, end };
+      });
+      const invalid = updates.find(period => !period.start || !period.end || period.end <= period.start);
+      if (invalid) {
+        window.alert(`${invalid.name}の終了時刻は開始時刻より後にしてください。`);
+        return;
+      }
+      periods = updates;
+      savePeriods();
+      renderTimetable();
+      renderCalendar();
+    });
+    document.getElementById("courseForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const days = [...document.querySelectorAll("[name='courseDays']:checked")].map(input => Number(input.value));
+      if (!days.length) {
+        window.alert("開講曜日を1つ以上選んでください。");
+        return;
+      }
+      const period = periods.find(item => item.id === Number(form.get("period")));
+      if (!period) return;
+      const course = {
+        id: editingCourseId ?? `course-${Date.now()}`,
+        title: String(form.get("title")).trim(),
+        days,
+        periodId: period.id,
+        location: String(form.get("location") ?? "").trim(),
+        instructor: String(form.get("instructor") ?? "").trim(),
+        credits: Number(form.get("credits")) || 0,
+        academicYear: form.get("academicYear") ? Number(form.get("academicYear")) : null,
+        semester: form.get("semester") ? Number(form.get("semester")) : null,
+        reminder: form.get("reminder") === "on",
+        reminderMinutes: Number(form.get("reminderMinutes")) || 10
+      };
+      if (editingCourseId) courses = courses.map(item => item.id === editingCourseId ? course : item);
+      else courses.push(course);
+      saveCourses();
+      resetCourseForm();
+      renderTimetable();
+      renderCalendar();
+      checkUpcomingReminders();
+    });
+    document.getElementById("cancelCourseEdit").addEventListener("click", resetCourseForm);
 
     function openBreakModal() {
       const date = localDateString(selectedDate);
@@ -1072,23 +1334,156 @@
       });
     }
     function openSemesterModal() {
-      const fields = document.getElementById("semesterFields");
-      fields.replaceChildren();
-      for (let semester = 1; semester <= 4; semester += 1) {
-        const period = semesters.find(item => item.id === semester) ?? { start: "", end: "" };
-        const startField = document.createElement("div");
-        startField.className = "field";
-        startField.innerHTML = `<label for="semester${semester}Start">第${semester}学期・開始日</label><input id="semester${semester}Start" name="semester${semester}Start" type="date">`;
-        startField.querySelector("input").value = period.start;
-        const endField = document.createElement("div");
-        endField.className = "field";
-        endField.innerHTML = `<label for="semester${semester}End">第${semester}学期・終了日</label><input id="semester${semester}End" name="semester${semester}End" type="date">`;
-        endField.querySelector("input").value = period.end;
-        fields.append(startField, endField);
-      }
+      const yearSelect = document.getElementById("semesterYearSelect");
+      const years = academicYears();
+      yearSelect.replaceChildren(...years.map(year => new Option(`${year}年度`, String(year))));
+      yearSelect.value = String(selectedAcademicYear);
+      renderSemesterYearFields(selectedAcademicYear);
       document.getElementById("semesterBackdrop").classList.add("open");
     }
     function closeSemesterModal() { document.getElementById("semesterBackdrop").classList.remove("open"); }
+    function renderSemesterYearFields(year) {
+      const fields = document.getElementById("semesterFields");
+      fields.replaceChildren();
+      for (let id = 1; id <= 4; id += 1) {
+        const period = semesters.find(item => Number(item.year) === Number(year) && Number(item.id) === id) ?? { start: "", end: "" };
+        const startField = document.createElement("div");
+        startField.className = "field";
+        startField.innerHTML = `<label for="semester${id}Start">第${id}学期・開始日</label><input id="semester${id}Start" name="semester${id}Start" type="date">`;
+        startField.querySelector("input").value = period.start ?? "";
+        const endField = document.createElement("div");
+        endField.className = "field";
+        endField.innerHTML = `<label for="semester${id}End">第${id}学期・終了日</label><input id="semester${id}End" name="semester${id}End" type="date">`;
+        endField.querySelector("input").value = period.end ?? "";
+        fields.append(startField, endField);
+      }
+    }
+    function academicYears() {
+      return [...new Set([now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1, ...semesters.map(period => Number(period.year)), ...courses.map(course => Number(course.academicYear)).filter(Boolean)])].sort((a, b) => a - b);
+    }
+    function populateCourseYears(selectedYear = selectedAcademicYear) {
+      const select = document.getElementById("courseAcademicYear");
+      select.replaceChildren(new Option("年度指定なし", ""));
+      academicYears().forEach(year => select.append(new Option(`${year}年度`, String(year))));
+      select.value = selectedYear == null ? "" : String(selectedYear);
+    }
+    function setAppPage(page) {
+      const onTimetable = page === "timetable";
+      document.body.dataset.page = page;
+      document.getElementById("plannerPage").classList.toggle("active", !onTimetable);
+      document.getElementById("timetablePage").classList.toggle("active", onTimetable);
+      document.getElementById("plannerNav").classList.toggle("active", !onTimetable);
+      document.getElementById("timetableNav").classList.toggle("active", onTimetable);
+      document.getElementById("plannerTab").classList.toggle("active", !onTimetable);
+      document.getElementById("timetableTab").classList.toggle("active", onTimetable);
+      document.querySelector("h1").textContent = onTimetable ? "履修時間割" : viewMode === "month" ? "月の予定" : viewMode === "agenda" ? "予定一覧" : "今週の予定";
+      if (onTimetable) renderTimetable();
+    }
+    function renderPeriods() {
+      const list = document.getElementById("periodList");
+      list.replaceChildren();
+      periods.forEach(period => {
+        const row = document.createElement("div");
+        row.className = "period-row";
+        row.innerHTML = `<strong>${period.name}</strong><input aria-label="${period.name}開始時刻" type="time" data-period="${period.id}" data-edge="start"><input aria-label="${period.name}終了時刻" type="time" data-period="${period.id}" data-edge="end">`;
+        row.querySelector('[data-edge="start"]').value = period.start;
+        row.querySelector('[data-edge="end"]').value = period.end;
+        list.append(row);
+      });
+    }
+    function populateCoursePeriods(selectedId) {
+      const select = document.getElementById("coursePeriod");
+      select.replaceChildren();
+      periods.forEach(period => {
+        const option = document.createElement("option");
+        option.value = String(period.id);
+        option.textContent = `${period.name} · ${period.start}–${period.end}`;
+        select.append(option);
+      });
+      if (selectedId != null && periods.some(period => period.id === Number(selectedId))) select.value = String(selectedId);
+    }
+    function resetCourseForm() {
+      editingCourseId = null;
+      document.getElementById("courseForm").reset();
+      document.querySelectorAll("[name='courseDays']:checked").forEach(input => { input.checked = false; });
+      document.getElementById("courseFormHeading").textContent = "履修科目を追加";
+      document.getElementById("saveCourse").textContent = "科目を登録";
+      document.getElementById("cancelCourseEdit").hidden = true;
+      document.getElementById("courseCredits").value = "2";
+      populateCourseYears(selectedAcademicYear);
+      document.getElementById("courseReminder").checked = false;
+      document.getElementById("courseReminderMinutes").value = "10";
+      populateCoursePeriods();
+    }
+    function renderTimetable() {
+      renderPeriods();
+      populateCoursePeriods(document.getElementById("coursePeriod").value);
+      populateCourseYears(document.getElementById("courseAcademicYear").value || selectedAcademicYear);
+      const list = document.getElementById("courseList");
+      list.replaceChildren();
+      const ordered = [...courses].sort((a, b) => (a.days?.[0] ?? 0) - (b.days?.[0] ?? 0) || Number(a.periodId) - Number(b.periodId) || a.title.localeCompare(b.title, "ja"));
+      if (!ordered.length) {
+        const empty = document.createElement("div");
+        empty.className = "timetable-empty";
+        empty.textContent = "まだ科目がありません。曜日と時限を選んで登録できます。";
+        list.append(empty);
+        return;
+      }
+      ordered.forEach(course => {
+        const period = periods.find(item => item.id === Number(course.periodId));
+        const row = document.createElement("div");
+        row.className = "course-row";
+        const main = document.createElement("div");
+        main.className = "course-row-main";
+        const title = document.createElement("div");
+        title.className = "course-row-title";
+        title.textContent = course.title;
+        const meta = document.createElement("div");
+        meta.className = "course-row-meta";
+        const dayText = (course.days ?? []).map(day => weekdayNames[day]).join("・");
+        const periodText = period ? `${period.name} ${period.start}–${period.end}` : `${course.start}–${course.end}`;
+        meta.textContent = `${course.academicYear ? `${course.academicYear}年度 · ` : ""}${dayText}曜 · ${periodText}${course.location ? ` · ${course.location}` : ""}${course.instructor ? ` · ${course.instructor}` : ""} · ${course.credits}単位`;
+        main.append(title, meta);
+        const actions = document.createElement("div");
+        actions.className = "course-row-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.textContent = "編集";
+        edit.addEventListener("click", () => editCourse(course.id));
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "削除";
+        remove.addEventListener("click", () => {
+          if (!window.confirm(`「${course.title}」を時間割から削除しますか？`)) return;
+          courses = courses.filter(item => item.id !== course.id);
+          saveCourses();
+          renderTimetable();
+          renderCalendar();
+        });
+        actions.append(edit, remove);
+        row.append(main, actions);
+        list.append(row);
+      });
+    }
+    function editCourse(courseId) {
+      const course = courses.find(item => item.id === courseId);
+      if (!course) return;
+      editingCourseId = course.id;
+      document.getElementById("courseName").value = course.title;
+      document.getElementById("courseLocation").value = course.location ?? "";
+      document.getElementById("courseInstructor").value = course.instructor ?? "";
+      document.getElementById("courseCredits").value = course.credits ?? 2;
+      populateCourseYears(course.academicYear ?? selectedAcademicYear);
+      document.getElementById("courseSemester").value = course.semester ?? "";
+      document.getElementById("courseReminder").checked = Boolean(course.reminder);
+      document.getElementById("courseReminderMinutes").value = String(course.reminderMinutes ?? 10);
+      populateCoursePeriods(course.periodId);
+      document.querySelectorAll("[name='courseDays']").forEach(input => { input.checked = (course.days ?? []).includes(Number(input.value)); });
+      document.getElementById("courseFormHeading").textContent = "履修科目を編集";
+      document.getElementById("saveCourse").textContent = "変更を保存";
+      document.getElementById("cancelCourseEdit").hidden = false;
+      document.getElementById("courseFormHeading").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     function populateWorkOptions(selectedId) {
       const select = document.getElementById("eventWorkId");
       select.replaceChildren();
@@ -1218,7 +1613,12 @@
       if (dayInput) dayInput.checked = true;
     });
     document.getElementById("eventType").addEventListener("change", event => {
+      document.getElementById("courseFields").hidden = event.target.value !== "class";
       document.getElementById("courseFields").style.display = event.target.value === "class" ? "contents" : "none";
+      if (event.target.value !== "class") {
+        document.getElementById("legacyClassOption").disabled = true;
+        document.getElementById("legacyClassOption").hidden = true;
+      }
       syncWorkFields(event.target.value, isWorkEvent({ type: event.target.value }) ? defaultWorkId(event.target.value) : null);
       if (event.target.value === "assignment") {
         document.getElementById("eventStart").value = "23:00";
@@ -1361,6 +1761,8 @@
     updateNotificationStatus();
     checkUpcomingReminders();
     window.setInterval(checkUpcomingReminders, 30000);
+    document.body.dataset.page = "planner";
+    renderTimetable();
     renderCalendar();
   </script>
 </body>
