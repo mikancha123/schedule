@@ -160,6 +160,7 @@
     .modal-title { margin: 0; font-size: 18px; }
     .close-btn { width: 32px; height: 32px; border: 0; background: #f2f4ef; border-radius: 50%; cursor: pointer; font-size: 20px; line-height: 1; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .form-grid, .field { min-width: 0; }
     .field { display: grid; gap: 6px; } .field.full { grid-column: 1 / -1; }
     .field label { color: #626d66; font-size: 11px; font-weight: 600; }
     .field input, .field select, .field textarea { width: 100%; padding: 10px 11px; color: var(--ink); border: 1px solid #dfe3dc; border-radius: 6px; outline: none; background: white; font-size: 12px; }
@@ -255,6 +256,21 @@
       .mobile-add { position: fixed; z-index: 3; right: 17px; bottom: 16px; display: grid; place-items: center; width: 50px; height: 50px; color: white; background: var(--green); border: 0; border-radius: 50%; box-shadow: 0 5px 16px #284c3b55; }
       .mobile-add svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2; }
       .modal { padding: 19px; }
+      .modal-backdrop:has(.event-modal) { align-items: flex-end; padding: 0; overflow: hidden; }
+      .modal-backdrop:has(.event-modal) { top: var(--visual-viewport-top, 0px); bottom: auto; height: var(--visual-viewport-height, 100dvh); }
+      .modal.event-modal { display: flex; flex-direction: column; width: 100%; max-width: none; height: min(calc(var(--visual-viewport-height, 100dvh) - 12px), 820px); max-height: 100%; min-height: 0; overflow: hidden; padding: 16px 16px 0; border-radius: 16px 16px 0 0; }
+      .event-modal .modal-top { flex: 0 0 auto; margin-bottom: 10px; }
+      .event-modal form { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; overflow: hidden; }
+      .event-modal .form-grid { display: grid; flex: 1 1 auto; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 12px; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 2px 2px 18px 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+      .event-modal .field, .event-modal .field.full { grid-column: 1; width: 100%; min-width: 0; }
+      .event-modal .field input, .event-modal .field select, .event-modal .field textarea { min-width: 0; max-width: 100%; }
+      .event-modal .modal-actions { position: relative; z-index: 2; flex: 0 0 auto; margin: 0 -16px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #e7e9e3; background: #fff; box-shadow: 0 -6px 16px rgba(32, 43, 42, .06); }
+      .event-modal .modal-actions .spacer { display: none; }
+      .event-modal .modal-actions button { flex: 1 1 0; min-width: 0; min-height: 48px; margin: 0; }
+      .event-modal .modal-actions #deleteEvent:not([hidden]) { flex: 0 0 auto; }
+      .event-modal .weekday-picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+      .event-modal .weekday-chip { min-width: 0; width: 100%; }
+      .event-modal .repeat-field { flex-wrap: wrap; }
       .field input, .field select, .field textarea, .side-date input { min-height: 44px; padding: 10px 12px; font-size: 16px; }
       .field textarea { min-height: 80px; }
       .nav-item, .export-menu button, .category-toggle { min-height: 44px; font-size: 14px; }
@@ -362,7 +378,7 @@
   </div>
   <button class="mobile-add" id="mobileAdd" type="button" aria-label="予定を追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
   <div class="modal-backdrop" id="modalBackdrop" role="presentation">
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+    <section class="modal event-modal" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
       <div class="modal-top"><h2 class="modal-title" id="modalHeading">予定を追加</h2><button class="close-btn" id="closeModal" type="button" aria-label="閉じる">×</button></div>
       <form id="eventForm">
         <div class="form-grid">
@@ -1003,6 +1019,16 @@
     }
     function closeModal() { document.getElementById("modalBackdrop").classList.remove("open"); }
     function goToToday() { selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); renderCalendar(); }
+    function syncVisualViewport() {
+      const viewport = window.visualViewport;
+      document.documentElement.style.setProperty("--visual-viewport-height", `${viewport?.height ?? window.innerHeight}px`);
+      document.documentElement.style.setProperty("--visual-viewport-top", `${viewport?.offsetTop ?? 0}px`);
+    }
+
+    syncVisualViewport();
+    window.visualViewport?.addEventListener("resize", syncVisualViewport);
+    window.visualViewport?.addEventListener("scroll", syncVisualViewport);
+    window.addEventListener("resize", syncVisualViewport);
 
     weekdayNames.forEach((name, day) => {
       const label = document.createElement("label");
