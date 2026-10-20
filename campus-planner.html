@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Komorebi | 大学の予定</title>
+  <meta name="theme-color" content="#387a62">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="komorebi">
+  <link rel="manifest" href="./campus-planner.webmanifest">
+  <link rel="icon" href="./campus-planner-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./campus-planner-icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202b2a;
+      --muted: #78817d;
+      --line: #e7e9e3;
+      --paper: #fbfbf7;
+      --white: #fff;
+      --green: #387a62;
+      --green-soft: #e4f0e9;
+      --coral: #d96b55;
+      --coral-soft: #f9e8e2;
+      --blue: #4d7b9a;
+      --blue-soft: #e4edf3;
+      --yellow: #e6b84c;
+      --shadow: 0 16px 48px rgba(34, 48, 43, .12);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font-family: "DM Sans", "Noto Sans JP", sans-serif; }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 246px minmax(0, 1fr); }
+    .sidebar { padding: 28px 18px 20px; background: #f1f3ed; border-right: 1px solid #e7eae2; display: flex; flex-direction: column; gap: 26px; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 9px; }
+    .brand-mark { width: 36px; height: 36px; display: grid; place-items: center; background: var(--green); color: white; border-radius: 12px 12px 12px 4px; }
+    .brand-mark svg { width: 21px; }
+    .brand-name { font-size: 17px; font-weight: 700; letter-spacing: .2px; }
+    .brand-caption { color: var(--muted); font-size: 10px; margin-top: 1px; }
+    .side-label { margin: 0 10px 9px; color: #8b928b; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; }
+    .side-nav { display: grid; gap: 4px; }
+    .nav-item { display: flex; width: 100%; align-items: center; gap: 12px; padding: 11px 12px; background: transparent; border: 0; border-radius: 8px; text-align: left; cursor: pointer; font-size: 13px; }
+    .nav-item.active { color: #255944; background: #e1ebe2; font-weight: 700; }
+    .nav-item svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+    .nav-count { margin-left: auto; font-size: 11px; color: var(--muted); }
+    .side-date { display: grid; gap: 10px; padding: 0 9px; }
+    .side-date input { width: 100%; color: var(--ink); padding: 9px; border: 1px solid #dce1d9; background: #fbfcf8; border-radius: 7px; font-size: 12px; }
+    .date-hint { font-size: 11px; color: var(--muted); }
+    .category-list { display: grid; gap: 11px; padding: 0 10px; }
+    .category-toggle { display: flex; align-items: center; gap: 9px; font-size: 12px; cursor: pointer; }
+    .category-toggle input { accent-color: var(--green); margin: 0; }
+    .category-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .dot-class { background: var(--green); } .dot-shift { background: var(--coral); } .dot-event { background: var(--blue); }
+    .dot-assignment { background: #b49437; } .dot-study { background: #477e97; }
+    .sidebar-foot { margin-top: auto; padding: 13px 11px 0; color: #858d86; font-size: 10px; line-height: 1.7; border-top: 1px solid #e0e4dc; }
+    .main { min-width: 0; padding: 28px clamp(18px, 3vw, 44px) 40px; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 28px; }
+    .eyebrow { color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+    h1 { margin: 7px 0 0; font-size: 27px; line-height: 1.35; font-weight: 700; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .today-btn, .icon-btn, .primary-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; border: 1px solid var(--line); background: white; border-radius: 7px; cursor: pointer; }
+    .today-btn { padding: 0 14px; font-size: 12px; font-weight: 600; }
+    .icon-btn { width: 38px; padding: 0; }
+    .icon-btn svg, .today-btn svg, .primary-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .primary-btn { padding: 0 15px; color: white; border-color: var(--green); background: var(--green); font-size: 12px; font-weight: 700; }
+    .export-wrap { position: relative; }
+    .export-menu { position: absolute; z-index: 4; top: calc(100% + 7px); right: 0; display: none; min-width: 172px; padding: 5px; background: white; border: 1px solid var(--line); border-radius: 7px; box-shadow: var(--shadow); }
+    .export-menu.open { display: grid; }
+    .export-menu button { min-height: 38px; padding: 0 10px; border: 0; border-radius: 4px; background: white; text-align: left; font-size: 11px; cursor: pointer; }
+    .export-menu button:hover { background: #f1f3ed; }
+    .export-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    button:hover { filter: brightness(.97); }
+    .summary-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .summary { min-height: 81px; padding: 15px 17px; background: #fff; border: 1px solid var(--line); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; }
+    .summary-label { color: var(--muted); font-size: 11px; }
+    .summary-value { margin-top: 5px; font-size: 20px; font-weight: 700; }
+    .summary-mark { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; }
+    .summary-mark svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .mark-green { color: var(--green); background: var(--green-soft); } .mark-coral { color: var(--coral); background: var(--coral-soft); } .mark-blue { color: var(--blue); background: var(--blue-soft); }
+    .calendar-panel { overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 8px; }
+    .calendar-toolbar { min-height: 63px; display: flex; align-items: center; justify-content: space-between; padding: 0 17px; border-bottom: 1px solid var(--line); gap: 14px; }
+    .week-title { font-size: 15px; font-weight: 700; white-space: nowrap; }
+    .week-control { display: flex; align-items: center; gap: 6px; }
+    .week-control .icon-btn { width: 31px; height: 31px; }
+    .view-switch { display: flex; background: #f1f3ef; border-radius: 6px; padding: 3px; }
+    .view-switch button { border: 0; background: transparent; border-radius: 4px; padding: 6px 10px; font-size: 10px; color: var(--muted); cursor: pointer; }
+    .view-switch button.active { background: white; color: var(--ink); box-shadow: 0 1px 3px #1e33221a; font-weight: 700; }
+    .calendar-scroll { overflow-x: auto; }
+    .calendar { min-width: 760px; }
+    .day-heads { display: grid; grid-template-columns: 54px repeat(7, minmax(0, 1fr)); position: sticky; top: 0; z-index: 2; background: white; border-bottom: 1px solid var(--line); }
+    .day-head { min-height: 58px; padding: 10px 4px 8px; text-align: center; border-left: 1px solid #f0f1ed; }
+    .day-head .day-name { display: block; color: var(--muted); font-size: 10px; }
+    .day-head .day-number { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-top: 2px; border-radius: 50%; font-size: 13px; font-weight: 600; }
+    .day-head.today .day-number { color: white; background: var(--green); }
+    .week-body { display: grid; grid-template-columns: 54px repeat(7, minmax(0, 1fr)); }
+    .calendar { --hour-px: 40px; }
+    .calendar-scroll { max-height: min(68vh, 620px); overflow: auto; }
+    .time-column, .day-column { position: relative; height: calc(24 * var(--hour-px)); }
+    .time-label { position: absolute; right: 9px; transform: translateY(-50%); color: #929993; font-size: 9px; }
+    .day-column { border-left: 1px solid #f0f1ed; }
+    .hour-line { position: absolute; left: 0; right: 0; border-top: 1px solid #eff0ec; pointer-events: none; }
+    .hour-line.half { border-top-style: dashed; border-color: #f3f4f1; }
+    .day-column.today { background: #fcfdf9; }
+    .event { position: absolute; z-index: 1; left: 4px; right: 4px; min-height: 35px; overflow: hidden; padding: 6px 7px; border: 0; border-left: 3px solid; border-radius: 4px; text-align: left; cursor: pointer; }
+    .event-title { display: block; overflow: hidden; font-size: 10px; line-height: 1.35; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .event-meta { display: block; margin-top: 3px; overflow: hidden; opacity: .78; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .event.class { color: #285d48; background: var(--green-soft); border-color: var(--green); }
+    .event.shift { color: #a04c3d; background: var(--coral-soft); border-color: var(--coral); }
+    .event.tutoring { color: #a04c3d; background: var(--coral-soft); border-color: var(--coral); }
+    .event.correction { color: #705b20; background: #f5efd9; border-color: #b49437; }
+    .event.assignment { color: #705b20; background: #f5efd9; border-color: #b49437; }
+    .event.study { color: #3c6682; background: #e4edf3; border-color: #4d7b9a; }
+    .event.event-type { color: #3c6682; background: var(--blue-soft); border-color: var(--blue); }
+    .empty-state { display: none; min-height: 220px; padding: 70px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+    .agenda { display: none; padding: 8px 19px 18px; }
+    .agenda-day { display: grid; grid-template-columns: 76px minmax(0, 1fr); padding: 13px 0; border-bottom: 1px solid #eff0ec; }
+    .agenda-date { color: var(--muted); font-size: 11px; }
+    .agenda-date strong { display: block; margin-top: 4px; color: var(--ink); font-size: 17px; }
+    .agenda-items { display: grid; gap: 7px; }
+    .agenda-item { display: flex; align-items: center; gap: 10px; border: 0; padding: 7px 9px; border-radius: 5px; text-align: left; cursor: pointer; }
+    .agenda-item.class { background: var(--green-soft); color: #285d48; } .agenda-item.shift, .agenda-item.tutoring { background: var(--coral-soft); color: #a04c3d; } .agenda-item.correction { background: #f5efd9; color: #705b20; } .agenda-item.event-type { background: var(--blue-soft); color: #3c6682; }
+    .agenda-item.assignment { background: #f5efd9; color: #705b20; } .agenda-item.study { background: #e4edf3; color: #3c6682; }
+    .agenda-time { font-size: 10px; font-weight: 700; white-space: nowrap; } .agenda-name { font-size: 11px; font-weight: 600; }
+    .month-view { display: none; padding: 8px; }
+    .month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .month-weekday { padding: 8px 3px; color: var(--muted); text-align: center; font-size: 10px; font-weight: 700; border-bottom: 1px solid var(--line); }
+    .month-cell { min-width: 0; min-height: 104px; padding: 6px 4px; border-right: 1px solid #eff0ec; border-bottom: 1px solid #eff0ec; cursor: pointer; }
+    .month-cell:nth-child(7n) { border-right: 0; }
+    .month-cell.outside { background: #fafbf8; color: #a4aaa5; }
+    .month-day-number { display: grid; width: 25px; height: 25px; place-items: center; margin: 0 auto 3px 0; border-radius: 50%; font-size: 11px; }
+    .month-cell.today .month-day-number { color: white; background: var(--green); }
+    .month-events { display: grid; gap: 3px; }
+    .month-event { overflow: hidden; padding: 3px 4px; border-left: 2px solid; border-radius: 3px; font-size: 9px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+    .month-event.class { color: #285d48; background: var(--green-soft); border-color: var(--green); }
+    .month-event.shift, .month-event.tutoring { color: #a04c3d; background: var(--coral-soft); border-color: var(--coral); }
+    .month-event.correction { color: #705b20; background: #f5efd9; border-color: #b49437; }
+    .month-event.assignment { color: #705b20; background: #f5efd9; border-color: #b49437; }
+    .month-event.study { color: #3c6682; background: #e4edf3; border-color: #4d7b9a; }
+    .month-event.event-type { color: #3c6682; background: var(--blue-soft); border-color: var(--blue); }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: none; align-items: center; justify-content: center; padding: 18px; background: #18211dcc; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(100%, 470px); max-height: 92vh; overflow-y: auto; padding: 23px; background: white; border-radius: 9px; box-shadow: var(--shadow); }
+    .modal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 19px; }
+    .modal-title { margin: 0; font-size: 18px; }
+    .close-btn { width: 32px; height: 32px; border: 0; background: #f2f4ef; border-radius: 50%; cursor: pointer; font-size: 20px; line-height: 1; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .field { display: grid; gap: 6px; } .field.full { grid-column: 1 / -1; }
+    .field label { color: #626d66; font-size: 11px; font-weight: 600; }
+    .field input, .field select, .field textarea { width: 100%; padding: 10px 11px; color: var(--ink); border: 1px solid #dfe3dc; border-radius: 6px; outline: none; background: white; font-size: 12px; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px #387a621c; }
+    .field textarea { resize: vertical; min-height: 64px; }
+    .repeat-field { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
+    .repeat-field input { accent-color: var(--green); }
+    .weekday-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+    .weekday-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 37px; min-height: 36px; border: 1px solid #dfe3dc; border-radius: 6px; color: #647068; font-size: 11px; cursor: pointer; }
+    .weekday-chip:has(input:checked) { color: #285d48; border-color: #a9c8b5; background: var(--green-soft); font-weight: 700; }
+    .weekday-chip input { position: absolute; opacity: 0; pointer-events: none; }
+    .break-list { display: grid; gap: 9px; margin-top: 15px; }
+    .break-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; }
+    .break-item strong { display: block; font-size: 11px; }
+    .break-item span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .wage-profile { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
+    .wage-profile-title { grid-column: 1 / -1; color: var(--green); font-size: 11px; font-weight: 700; }
+    .wage-breakdown { display: grid; gap: 8px; margin: 15px 0; }
+    .wage-breakdown-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 10px; background: #f5f6f2; border-radius: 5px; font-size: 11px; }
+    .wage-breakdown-row strong { white-space: nowrap; }
+    .wage-breakdown-total { display: flex; justify-content: space-between; padding: 12px 10px; border-top: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+    .break-remove { min-height: 36px; padding: 0 8px; border: 0; background: transparent; color: #b44c42; cursor: pointer; font-size: 10px; }
+    .course-fields { display: contents; }
+    .break-mobile-button { display: none; }
+    .modal-actions { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+    .modal-actions .spacer { flex: 1; }
+    .secondary-btn, .delete-btn { height: 38px; padding: 0 13px; border: 1px solid var(--line); background: white; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }
+    .delete-btn { color: #b44c42; border-color: #f0d8d3; }
+    .mobile-add { display: none; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 205px minmax(0, 1fr); }
+      .sidebar { padding-inline: 12px; }
+      .main { padding-inline: 20px; }
+      .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .summary { padding-inline: 12px; }
+    }
+    @media (max-width: 680px) {
+      .app { display: block; padding-bottom: 62px; }
+      body[data-view="week"] .app { padding-bottom: 0; }
+      body[data-view="week"] .summary-row { display: none; }
+      .sidebar { display: none; }
+      .main { padding: 22px 13px 28px; }
+      .topbar { align-items: center; margin-bottom: 18px; }
+      h1 { font-size: 21px; }
+      .eyebrow { font-size: 9px; }
+      .top-actions { gap: 6px; }
+      .top-actions .today-btn { display: none; }
+      .top-actions .break-mobile-button { display: inline-flex; width: 39px; padding: 0; }
+      .top-actions .primary-btn { width: 39px; padding: 0; font-size: 0; }
+      .top-actions .primary-btn svg { width: 18px; height: 18px; }
+      .export-button { width: 39px; padding: 0; font-size: 0; }
+      .export-button svg { width: 18px; height: 18px; }
+      .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 16px; }
+      .summary { min-height: 69px; display: block; padding: 10px; }
+      .summary-label { font-size: 9px; white-space: nowrap; }
+      .summary-value { font-size: 17px; margin-top: 2px; }
+      .summary-mark { display: none; }
+      .calendar-toolbar { min-height: 57px; padding: 0 10px; }
+      .week-title { font-size: 12px; }
+      .week-control { gap: 3px; }
+      .week-control .icon-btn { width: 28px; height: 28px; }
+      .view-switch button { min-height: 32px; padding: 6px 8px; font-size: 9px; }
+      .calendar { min-width: 0; }
+      .calendar { --hour-px: 32px; }
+      .calendar-scroll { max-height: min(58vh, 500px); overflow-x: hidden; overflow-y: auto; }
+      .day-heads { grid-template-columns: 29px repeat(7, minmax(0, 1fr)); }
+      .week-body { grid-template-columns: 29px repeat(7, minmax(0, 1fr)); }
+      .time-column, .day-column { height: calc(24 * var(--hour-px)); }
+      .time-label { right: 3px; font-size: 8px; }
+      .day-head { padding-inline: 1px; }
+      .day-head .day-name { font-size: 9px; }
+      .event { left: 1px; right: 1px; padding: 4px 2px; border-left-width: 2px; }
+      .event-title { font-size: 8px; }
+      .event-meta { font-size: 7px; }
+      .month-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+      .month-cell { min-height: 76px; padding: 4px 2px; }
+      .month-event { font-size: 8px; padding: 3px 2px; }
+      .mobile-add { position: fixed; z-index: 3; right: 17px; bottom: 16px; display: grid; place-items: center; width: 50px; height: 50px; color: white; background: var(--green); border: 0; border-radius: 50%; box-shadow: 0 5px 16px #284c3b55; }
+      .mobile-add svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2; }
+      .modal { padding: 19px; }
+    }
+    @media print {
+      @page { size: landscape; margin: 10mm; }
+      body { background: white; }
+      .sidebar, .top-actions, .summary-row, .mobile-add, .modal-backdrop, .week-control { display: none !important; }
+      .app, .main { display: block; min-height: 0; padding: 0; }
+      .topbar { margin: 0 0 12px; }
+      .calendar-panel { overflow: visible; border: 0; }
+      .calendar-scroll { max-height: none; overflow: visible; }
+      .calendar { min-width: 0 !important; }
+      .time-column, .day-column { height: 768px !important; }
+      .month-view { padding: 0; }
+      .month-cell { min-height: 95px; }
+      body[data-view="week"] #calendarScroll { display: block !important; }
+      body[data-view="week"] #monthView, body[data-view="week"] #agenda { display: none !important; }
+      body[data-view="month"] #calendarScroll, body[data-view="month"] #agenda { display: none !important; }
+      body[data-view="month"] #monthView { display: block !important; }
+      body[data-view="agenda"] #calendarScroll, body[data-view="agenda"] #monthView { display: none !important; }
+      body[data-view="agenda"] #agenda { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V9m0 4c-4 0-6-2.5-6-6 4 0 6 2.5 6 6Zm0-2c0-4 2.5-6 6-6 0 3.5-2 6-6 6Z"/><path d="M5 20h14"/></svg></div>
+        <div><div class="brand-name">komorebi</div><div class="brand-caption">campus planner</div></div>
+      </div>
+      <div>
+        <p class="side-label">MENU</p>
+        <nav class="side-nav" aria-label="メニュー">
+          <button class="nav-item active" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/></svg>週の予定</button>
+          <button class="nav-item" type="button" id="navToday"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>今日の予定<span class="nav-count" id="todayCount">0</span></button>
+        </nav>
+      </div>
+      <div class="side-date">
+        <p class="side-label" style="margin:0">日付を選ぶ</p>
+        <input id="datePicker" type="date" aria-label="表示する週の日付">
+        <div class="date-hint">日付を選ぶと、その週に移動します。</div>
+      </div>
+      <div>
+        <p class="side-label">表示する予定</p>
+        <div class="category-list">
+          <label class="category-toggle"><input type="checkbox" checked data-filter="class"><span class="category-dot dot-class"></span>大学の授業</label>
+          <label class="category-toggle"><input type="checkbox" checked data-filter="shift"><span class="category-dot dot-shift"></span>塾・添削バイト</label>
+          <label class="category-toggle"><input type="checkbox" checked data-filter="event"><span class="category-dot dot-event"></span>その他の予定</label>
+          <label class="category-toggle"><input type="checkbox" checked data-filter="assignment"><span class="category-dot dot-assignment"></span>提出物・締切</label>
+          <label class="category-toggle"><input type="checkbox" checked data-filter="study"><span class="category-dot dot-study"></span>勉強スケジュール</label>
+        </div>
+      </div>
+      <div>
+        <p class="side-label">学事カレンダー</p>
+        <button class="nav-item" id="breakSettingsButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg>長期休みを設定<span class="nav-count" id="breakCount">0</span></button>
+        <button class="nav-item" id="semesterSettingsButton" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18M7 13h3m4 0h3M7 17h3"/></svg>4学期の期間を設定</button>
+        <button class="nav-item" id="wageSettingsButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v20m5-16H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H6"/></svg>バイト給与を設定</button>
+      </div>
+      <div class="sidebar-foot">予定はこのブラウザに自動保存されます。<br>自分の端末で気軽に使えます。</div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">MY CAMPUS LIFE</div><h1>今週の予定</h1></div>
+        <div class="top-actions">
+          <button class="today-btn" id="todayButton" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>今日</button>
+          <button class="today-btn break-mobile-button" id="breakMobileButton" type="button" aria-label="長期休みを設定" title="長期休みを設定"><svg viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4m0-12.8L17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg></button>
+          <button class="today-btn break-mobile-button" id="semesterMobileButton" type="button" aria-label="4学期の期間を設定" title="4学期の期間を設定"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18M7 13h3m4 0h3M7 17h3"/></svg></button>
+          <div class="export-wrap">
+            <button class="today-btn export-button" id="exportButton" type="button" aria-label="予定を出力" aria-expanded="false" title="予定を出力"><svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 17v4h14v-4"/></svg>出力</button>
+            <div class="export-menu" id="exportMenu"><button id="exportPdf" type="button">PDFとして保存・印刷</button><button id="exportImage" type="button">画像（SVG）を保存</button><button id="enableNotifications" type="button">通知を有効にする</button><button id="wageMobileButton" type="button">バイト給与を設定</button><span id="notificationStatus" style="padding:5px 10px;color:#78817d;font-size:10px"></span></div>
+          </div>
+          <button class="primary-btn" id="addButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>予定を追加</button>
+        </div>
+      </header>
+      <section class="summary-row" aria-label="今週の集計">
+        <div class="summary"><div><div class="summary-label">今週の授業</div><div class="summary-value" id="classSummary">0<span style="font-size:11px;font-weight:500;color:#78817d"> コマ</span></div></div><span class="summary-mark mark-green"><svg viewBox="0 0 24 24"><path d="M4 19V5l8 6 8-6v14M4 19h16"/></svg></span></div>
+        <div class="summary"><div><div class="summary-label">バイトシフト</div><div class="summary-value" id="shiftSummary">0<span style="font-size:11px;font-weight:500;color:#78817d"> 回</span></div></div><span class="summary-mark mark-coral"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM7 7V4h10v3M3 12h18m-11 0v2h4v-2"/></svg></span></div>
+        <div class="summary"><div><div class="summary-label">予定の合計</div><div class="summary-value" id="totalSummary">0<span style="font-size:11px;font-weight:500;color:#78817d"> 件</span></div></div><span class="summary-mark mark-blue"><svg viewBox="0 0 24 24"><path d="M5 4h14v17l-7-4-7 4zM8 9h8M8 12h6"/></svg></span></div>
+        <div class="summary"><div><div class="summary-label">履修単位</div><div class="summary-value" id="creditsSummary">0<span style="font-size:11px;font-weight:500;color:#78817d"> 単位</span></div></div><span class="summary-mark mark-green"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5ZM6 10v5c3.5 3 8.5 3 12 0v-5M21 8v6"/></svg></span></div>
+        <div class="summary"><div><div class="summary-label">今月の給与見込み</div><div class="summary-value" id="paySummary">¥0</div></div><span class="summary-mark mark-coral"><svg viewBox="0 0 24 24"><path d="M12 2v20m5-16H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H6"/></svg></span></div>
+      </section>
+      <section class="calendar-panel" aria-label="週間カレンダー">
+        <div class="calendar-toolbar">
+          <div class="week-title" id="weekTitle"></div>
+          <div class="week-control">
+            <button class="icon-btn" id="prevWeek" type="button" aria-label="前の週" title="前の週"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+            <button class="icon-btn" id="nextWeek" type="button" aria-label="次の週" title="次の週"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+            <div class="view-switch" role="group" aria-label="表示形式"><button class="active" id="weekViewButton" type="button">週</button><button id="monthViewButton" type="button">月</button><button id="agendaViewButton" type="button">リスト</button></div>
+          </div>
+        </div>
+        <div class="calendar-scroll" id="calendarScroll"><div class="calendar" id="calendar"></div></div>
+        <div class="month-view" id="monthView"></div>
+        <div class="agenda" id="agenda"></div>
+        <div class="empty-state" id="emptyState">この週に予定はありません。<br>右上の「予定を追加」から登録できます。</div>
+      </section>
+    </main>
+  </div>
+  <button class="mobile-add" id="mobileAdd" type="button" aria-label="予定を追加"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <div class="modal-backdrop" id="modalBackdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+      <div class="modal-top"><h2 class="modal-title" id="modalHeading">予定を追加</h2><button class="close-btn" id="closeModal" type="button" aria-label="閉じる">×</button></div>
+      <form id="eventForm">
+        <div class="form-grid">
+          <div class="field full"><label for="eventName">予定の名前</label><input id="eventName" name="title" maxlength="60" required placeholder="例：ミクロ経済学、カフェのシフト"></div>
+          <div class="field"><label for="eventType">種類</label><select id="eventType" name="type"><option value="class">大学の授業</option><option value="tutoring">塾バイト</option><option value="correction">添削バイト</option><option value="assignment">提出物・締切</option><option value="study">勉強スケジュール</option><option value="shift">その他のバイト</option><option value="event">その他の予定</option></select></div>
+          <div class="field"><label for="eventLocation">場所</label><input id="eventLocation" name="location" maxlength="60" placeholder="教室・店舗など"></div>
+          <div class="work-fields field full" id="workFields" hidden><label for="eventWorkId">勤務先</label><select id="eventWorkId" name="workId"></select></div>
+          <div class="work-fields field full" id="workUnitsField" hidden><label for="eventWorkUnits">添削した件数</label><input id="eventWorkUnits" name="workUnits" type="number" min="0" step="1" value="1"></div>
+          <div class="course-fields" id="courseFields">
+            <div class="field"><label for="eventInstructor">担当教員</label><input id="eventInstructor" name="instructor" maxlength="60" placeholder="例：山田先生"></div>
+            <div class="field"><label for="eventCredits">単位数</label><input id="eventCredits" name="credits" type="number" min="0" max="30" step="0.5" value="2"></div>
+            <div class="field full"><label for="eventSemester">履修学期</label><select id="eventSemester" name="semester"><option value="">学期を指定しない</option><option value="1">第1学期</option><option value="2">第2学期</option><option value="3">第3学期</option><option value="4">第4学期</option></select></div>
+          </div>
+          <div class="field"><label for="eventDate">日付</label><input id="eventDate" name="date" type="date" required></div>
+          <div class="field"><label for="eventRepeat">繰り返し</label><label class="repeat-field"><input id="eventRepeat" name="repeat" type="checkbox">毎週同じ曜日</label></div>
+          <div class="field full" id="weekdayField" hidden><label>曜日（複数選択できます）</label><div class="weekday-picker" id="weekdayPicker"></div></div>
+          <div class="field"><label for="eventStart">開始</label><input id="eventStart" name="start" type="time" value="09:00" required></div>
+          <div class="field"><label for="eventEnd">終了</label><input id="eventEnd" name="end" type="time" value="10:30" required></div>
+          <div class="field full"><label>リマインダー</label><div class="repeat-field"><input id="eventReminder" name="reminder" type="checkbox"><span>予定前に通知</span><select id="reminderMinutes" name="reminderMinutes" aria-label="通知するタイミング"><option value="5">5分前</option><option value="10" selected>10分前</option><option value="15">15分前</option><option value="30">30分前</option><option value="60">1時間前</option></select></div></div>
+          <div class="field full"><label for="eventNotes">メモ</label><textarea id="eventNotes" name="notes" maxlength="240" placeholder="持ち物や補足など"></textarea></div>
+        </div>
+        <div class="modal-actions"><button class="delete-btn" id="deleteEvent" type="button" hidden>削除</button><span class="spacer"></span><button class="secondary-btn" id="cancelModal" type="button">キャンセル</button><button class="primary-btn" type="submit">保存する</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="breakBackdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="breakHeading">
+      <div class="modal-top"><h2 class="modal-title" id="breakHeading">長期休みの設定</h2><button class="close-btn" id="closeBreakModal" type="button" aria-label="閉じる">×</button></div>
+      <form id="breakForm">
+        <div class="form-grid">
+          <div class="field full"><label for="breakName">休みの名前</label><input id="breakName" name="name" maxlength="50" required placeholder="例：夏休み"></div>
+          <div class="field"><label for="breakStart">開始日</label><input id="breakStart" name="start" type="date" required></div>
+          <div class="field"><label for="breakEnd">終了日</label><input id="breakEnd" name="end" type="date" required></div>
+        </div>
+        <div class="modal-actions"><span class="spacer"></span><button class="secondary-btn" id="cancelBreakModal" type="button">閉じる</button><button class="primary-btn" type="submit">休みを追加</button></div>
+      </form>
+      <div class="break-list" id="breakList"></div>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="semesterBackdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="semesterHeading">
+      <div class="modal-top"><h2 class="modal-title" id="semesterHeading">4学期の期間設定</h2><button class="close-btn" id="closeSemesterModal" type="button" aria-label="閉じる">×</button></div>
+      <form id="semesterForm">
+        <div class="form-grid" id="semesterFields"></div>
+        <div class="modal-actions"><span class="spacer"></span><button class="secondary-btn" id="cancelSemesterModal" type="button">キャンセル</button><button class="primary-btn" type="submit">期間を保存</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="wageBackdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="wageHeading">
+      <div class="modal-top"><h2 class="modal-title" id="wageHeading">3種類のバイト給与設定</h2><button class="close-btn" id="closeWageModal" type="button" aria-label="閉じる">×</button></div>
+      <form id="wageForm">
+        <div class="break-list" id="wageFields"></div>
+        <div class="modal-actions"><span class="spacer"></span><button class="secondary-btn" id="cancelWageModal" type="button">キャンセル</button><button class="primary-btn" type="submit">給与設定を保存</button></div>
+      </form>
+      <div class="wage-breakdown" id="wageBreakdown"></div>
+      <div class="wage-breakdown-total"><span>今月の合計見込み</span><strong id="wageTotal">¥0</strong></div>
+      <p class="date-hint">時給制は勤務時間、単価制は件数から計算した概算です。税金・交通費・割増などは含みません。</p>
+    </section>
+  </div>
+  <script>
+    const storageKey = "komorebi-planner-events-v1";
+    const breaksStorageKey = "komorebi-planner-breaks-v1";
+    const semestersStorageKey = "komorebi-planner-semesters-v1";
+    const wagesStorageKey = "komorebi-planner-wages-v1";
+    const reminderKeysStorageKey = "komorebi-planner-notified-v1";
+    const notificationsEnabledKey = "komorebi-planner-notifications-enabled-v1";
+    const weekdayNames = ["日", "月", "火", "水", "木", "金", "土"];
+    const categoryLabels = { class: "大学の授業", shift: "アルバイト", tutoring: "塾バイト", correction: "添削バイト", assignment: "提出物・締切", study: "勉強", event: "その他の予定" };
+    const colors = { class: "class", shift: "shift", tutoring: "tutoring", correction: "correction", assignment: "assignment", study: "study", event: "event-type" };
+    const now = new Date();
+    let selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let editingId = null;
+    let viewMode = "week";
+    let calendarScrollHour = 6;
+    let activeFilters = new Set(["class", "shift", "event", "assignment", "study"]);
+    let breaks = loadBreaks();
+    let semesters = loadSemesters();
+    let wageProfiles = loadWageProfiles();
+    let notificationsEnabled = localStorage.getItem(notificationsEnabledKey) === "true";
+    let notifiedReminders = loadNotifiedReminders();
+
+    function loadNotifiedReminders() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(reminderKeysStorageKey));
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function loadBreaks() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(breaksStorageKey));
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        console.warn("休み期間を読み込めませんでした。", error);
+        return [];
+      }
+    }
+    function saveBreaks() { localStorage.setItem(breaksStorageKey, JSON.stringify(breaks)); }
+    function loadSemesters() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(semestersStorageKey));
+        return Array.isArray(saved) ? saved : Array.from({ length: 4 }, (_, index) => ({ id: index + 1, start: "", end: "" }));
+      } catch (error) {
+        console.warn("学期期間を読み込めませんでした。", error);
+        return Array.from({ length: 4 }, (_, index) => ({ id: index + 1, start: "", end: "" }));
+      }
+    }
+    function saveSemesters() { localStorage.setItem(semestersStorageKey, JSON.stringify(semesters)); }
+    function loadWageProfiles() {
+      const defaults = [
+        { id: "job1", name: "塾バイト", mode: "hourly", rate: 0 },
+        { id: "job2", name: "添削バイト", mode: "perUnit", rate: 0 },
+        { id: "job3", name: "バイト3", mode: "hourly", rate: 0 }
+      ];
+      try {
+        const saved = JSON.parse(localStorage.getItem(wagesStorageKey));
+        if (!Array.isArray(saved)) return defaults;
+        return defaults.map(profile => ({ ...profile, ...(saved.find(item => item.id === profile.id) ?? {}) }));
+      } catch (error) {
+        return defaults;
+      }
+    }
+    function saveWageProfiles() { localStorage.setItem(wagesStorageKey, JSON.stringify(wageProfiles)); }
+
+    function localDateString(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+    function parseDate(value) {
+      const [year, month, day] = value.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+    function weekStartOf(date) {
+      const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      result.setDate(result.getDate() - result.getDay());
+      return result;
+    }
+    function addDays(date, amount) {
+      const result = new Date(date);
+      result.setDate(result.getDate() + amount);
+      return result;
+    }
+    function seedEvents() {
+      const sunday = weekStartOf(now);
+      const recurring = [
+        [0, "ミクロ経済学", "09:00", "10:30", "G棟 302"], [0, "英語コミュニケーション", "13:20", "14:50", "L教室"],
+        [1, "統計学入門", "10:50", "12:20", "S棟 201"], [1, "情報リテラシー", "15:00", "16:30", "PC演習室"],
+        [2, "基礎ゼミ", "09:00", "10:30", "R棟 4F"], [2, "マーケティング論", "13:20", "14:50", "G棟 110"],
+        [3, "日本経済論", "10:50", "12:20", "G棟 302"], [4, "データサイエンス", "13:20", "14:50", "PC演習室"]
+      ].map(([day, title, start, end, location], index) => ({ id: `seed-class-${index}`, title, type: "class", days: [(day + 1) % 7], start, end, location, instructor: "", credits: 2, notes: "", recurring: true }));
+      const oneTime = [
+        [1, "カフェのシフト", "17:00", "21:00", "駅前店", "shift"], [3, "レポート提出", "16:00", "16:30", "", "event"],
+        [5, "カフェのシフト", "12:00", "18:00", "駅前店", "shift"], [6, "サークルミーティング", "14:00", "15:30", "学生会館", "event"]
+      ].map(([day, title, start, end, location, type], index) => ({ id: `seed-one-${index}`, title, type, date: localDateString(addDays(sunday, (day + 1) % 7)), start, end, location, notes: "", recurring: false }));
+      return [...recurring, ...oneTime];
+    }
+    function loadEvents() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        if (Array.isArray(saved)) return saved.map(event => ({
+          ...event,
+          days: event.days ?? (event.recurring ? [(event.day + 1) % 7] : undefined),
+          instructor: event.instructor ?? "",
+          credits: event.credits ?? (event.type === "class" ? 2 : 0),
+          reminder: Boolean(event.reminder),
+          reminderMinutes: event.reminderMinutes ?? 10,
+          workId: event.workId ?? defaultWorkId(event.type),
+          workUnits: event.workUnits ?? 1
+        }));
+      } catch (error) {
+        console.warn("予定を読み込めませんでした。", error);
+      }
+      const initial = seedEvents();
+      localStorage.setItem(storageKey, JSON.stringify(initial));
+      return initial;
+    }
+    let events = loadEvents();
+    function saveEvents() { localStorage.setItem(storageKey, JSON.stringify(events)); }
+    function recurringDays(event) { return event.days ?? [(event.day + 1) % 7]; }
+    function filterKey(type) { return ["shift", "tutoring", "correction"].includes(type) ? "shift" : type; }
+    function isWorkEvent(event) { return ["shift", "tutoring", "correction"].includes(event.type); }
+    function defaultWorkId(type) { return type === "correction" ? "job2" : type === "shift" ? "job3" : "job1"; }
+    function workProfileFor(event) { return wageProfiles.find(profile => profile.id === (event.workId ?? defaultWorkId(event.type))) ?? wageProfiles[0]; }
+    function calculateMonthPay(date) {
+      const totals = wageProfiles.map(profile => ({ ...profile, amount: 0, shifts: 0, units: 0, hours: 0 }));
+      const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+      for (let dayNumber = 1; dayNumber <= lastDay; dayNumber += 1) {
+        const day = new Date(date.getFullYear(), date.getMonth(), dayNumber);
+        const dateKey = localDateString(day);
+        events.filter(event => isWorkEvent(event) && (event.recurring
+          ? recurringDays(event).includes(day.getDay())
+          : event.date === dateKey)).forEach(event => {
+          const total = totals.find(item => item.id === workProfileFor(event).id);
+          if (!total) return;
+          total.shifts += 1;
+          if (total.mode === "perUnit") {
+            const units = Math.max(0, Number(event.workUnits) || 0);
+            total.units += units;
+            total.amount += units * total.rate;
+          } else {
+            let minutes = minutesFromTime(event.end) - minutesFromTime(event.start);
+            if (minutes < 0) minutes += 1440;
+            const hours = minutes / 60;
+            total.hours += hours;
+            total.amount += hours * total.rate;
+          }
+        });
+      }
+      return totals;
+    }
+    function formatYen(amount) { return `¥${Math.round(amount).toLocaleString("ja-JP")}`; }
+    function classIsInSession(event, date) {
+      if (event.type !== "class") return true;
+      const dateKey = localDateString(date);
+      if (breaks.some(period => period.start <= dateKey && period.end >= dateKey)) return false;
+      const semester = event.semester ? semesters.find(period => period.id === Number(event.semester)) : null;
+      return !(semester?.start && semester?.end && (dateKey < semester.start || dateKey > semester.end));
+    }
+    function getWeekEvents() {
+      const weekStart = weekStartOf(selectedDate);
+      const weekEnd = addDays(weekStart, 7);
+      return events.flatMap(event => {
+        if (!activeFilters.has(filterKey(event.type))) return [];
+        if (!event.recurring) {
+          const date = parseDate(event.date);
+          if (date < weekStart || date >= weekEnd || !classIsInSession(event, date)) return [];
+          return [{ ...event, displayDate: date, dayIndex: date.getDay() }];
+        }
+        return recurringDays(event).flatMap(day => {
+          const date = addDays(weekStart, day);
+          return classIsInSession(event, date) ? [{ ...event, displayDate: date, dayIndex: day }] : [];
+        });
+      }).sort((a, b) => a.dayIndex - b.dayIndex || a.start.localeCompare(b.start));
+    }
+    function getEventsForDate(date) {
+      const dateKey = localDateString(date);
+      const day = date.getDay();
+      return events.filter(event => activeFilters.has(filterKey(event.type)) && classIsInSession(event, date) && (event.recurring
+        ? recurringDays(event).includes(day)
+        : event.date === dateKey))
+        .sort((a, b) => a.start.localeCompare(b.start));
+    }
+    function formatTime(date) { return `${date.getMonth() + 1}/${date.getDate()}`; }
+    function formatRange(start, end) {
+      return start.getMonth() === end.getMonth()
+        ? `${start.getFullYear()}年 ${start.getMonth() + 1}月 ${start.getDate()}日 - ${end.getDate()}日`
+        : `${start.getFullYear()}年 ${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`;
+    }
+    function minutesFromTime(value) { const [hours, minutes] = value.split(":").map(Number); return hours * 60 + minutes; }
+    function durationLabel(event) {
+      const minutes = minutesFromTime(event.end) - minutesFromTime(event.start);
+      return `${event.start} - ${event.end}${event.location ? ` · ${event.location}` : ""}`;
+    }
+    function updateNotificationStatus() {
+      const status = document.getElementById("notificationStatus");
+      if (!("Notification" in window)) {
+        status.textContent = "この環境では通知を利用できません";
+      } else if (Notification.permission === "denied") {
+        status.textContent = "通知は端末のブラウザー設定で許可してください";
+      } else if (notificationsEnabled && Notification.permission === "granted") {
+        status.textContent = "通知ON（アプリ起動中に通知）";
+      } else {
+        status.textContent = "許可すると予定前に通知します";
+      }
+    }
+    async function requestNotifications() {
+      if (!("Notification" in window)) {
+        updateNotificationStatus();
+        return;
+      }
+      if (Notification.permission === "denied") {
+        updateNotificationStatus();
+        return;
+      }
+      const permission = await Notification.requestPermission();
+      notificationsEnabled = permission === "granted";
+      localStorage.setItem(notificationsEnabledKey, String(notificationsEnabled));
+      updateNotificationStatus();
+      if (notificationsEnabled) checkUpcomingReminders();
+    }
+    async function sendReminder(event, date, startsAt, minutesRemaining, key) {
+      const body = `${date.getMonth() + 1}/${date.getDate()} ${event.start}${event.location ? ` · ${event.location}` : ""}（あと${Math.max(1, Math.ceil(minutesRemaining))}分）`;
+      const options = { body, icon: "./campus-planner-icon.svg", tag: key, data: { url: "./campus-planner.html" } };
+      try {
+        const registration = await navigator.serviceWorker?.getRegistration();
+        if (registration) await registration.showNotification(`${categoryLabels[event.type] ?? "予定"}: ${event.title}`, options);
+        else new Notification(`${categoryLabels[event.type] ?? "予定"}: ${event.title}`, options);
+      } catch (error) {
+        console.warn("通知を表示できませんでした。", error);
+      }
+    }
+    function checkUpcomingReminders() {
+      if (!notificationsEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+      const current = new Date();
+      events.filter(event => event.reminder).forEach(event => {
+        const dates = [];
+        if (event.recurring) {
+          for (let offset = 0; offset <= 7; offset += 1) {
+            const date = addDays(new Date(current.getFullYear(), current.getMonth(), current.getDate()), offset);
+            if (recurringDays(event).includes(date.getDay()) && classIsInSession(event, date)) dates.push(date);
+          }
+        } else {
+          const date = parseDate(event.date);
+          if (date >= new Date(current.getFullYear(), current.getMonth(), current.getDate()) && classIsInSession(event, date)) dates.push(date);
+        }
+        dates.forEach(date => {
+          const [hours, minutes] = event.start.split(":").map(Number);
+          const startsAt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
+          const remaining = startsAt.getTime() - current.getTime();
+          const leadMinutes = Number(event.reminderMinutes) || 10;
+          const key = `${event.id}-${localDateString(date)}-${event.start}`;
+          if (remaining <= 0 || remaining > leadMinutes * 60000 || notifiedReminders.includes(key)) return;
+          notifiedReminders.push(key);
+          notifiedReminders = notifiedReminders.slice(-200);
+          localStorage.setItem(reminderKeysStorageKey, JSON.stringify(notifiedReminders));
+          sendReminder(event, date, startsAt, remaining / 60000, key);
+        });
+      });
+    }
+    function updateSummary(weekEvents) {
+      const classes = weekEvents.filter(event => event.type === "class").length;
+      const shifts = weekEvents.filter(event => ["shift", "tutoring", "correction"].includes(event.type)).length;
+      const credits = [...new Map(events.filter(event => event.type === "class").map(event => [event.id, Number(event.credits) || 0])).values()].reduce((sum, value) => sum + value, 0);
+      document.getElementById("classSummary").innerHTML = `${classes}<span style="font-size:11px;font-weight:500;color:#78817d"> コマ</span>`;
+      document.getElementById("shiftSummary").innerHTML = `${shifts}<span style="font-size:11px;font-weight:500;color:#78817d"> 回</span>`;
+      document.getElementById("totalSummary").innerHTML = `${weekEvents.length}<span style="font-size:11px;font-weight:500;color:#78817d"> 件</span>`;
+      document.getElementById("creditsSummary").innerHTML = `${credits}<span style="font-size:11px;font-weight:500;color:#78817d"> 単位</span>`;
+      const monthPay = calculateMonthPay(selectedDate).reduce((sum, profile) => sum + profile.amount, 0);
+      document.getElementById("paySummary").textContent = formatYen(monthPay);
+      document.getElementById("breakCount").textContent = breaks.length;
+      const todayEvents = events.filter(event => event.recurring
+        ? recurringDays(event).includes(now.getDay())
+        : event.date === localDateString(now));
+      document.getElementById("todayCount").textContent = todayEvents.length;
+    }
+    function renderCalendar() {
+      const weekStart = weekStartOf(selectedDate);
+      const weekEnd = addDays(weekStart, 6);
+      const weekTitle = document.getElementById("weekTitle");
+      weekTitle.textContent = viewMode === "month"
+        ? `${selectedDate.getFullYear()}年 ${selectedDate.getMonth() + 1}月`
+        : formatRange(weekStart, weekEnd);
+      document.querySelector("h1").textContent = viewMode === "month" ? "月の予定" : viewMode === "agenda" ? "予定一覧" : "今週の予定";
+      weekTitle.setAttribute("aria-label", viewMode === "month" ? "表示中の月" : "表示中の週");
+      document.getElementById("datePicker").value = localDateString(selectedDate);
+      const visibleEvents = getWeekEvents();
+      document.body.dataset.view = viewMode;
+      updateSummary(viewMode === "month" ? eventsForMonth(selectedDate) : visibleEvents);
+      const summaryLabels = document.querySelectorAll(".summary-label");
+      summaryLabels[0].textContent = viewMode === "month" ? "今月の授業" : "今週の授業";
+      summaryLabels[1].textContent = viewMode === "month" ? "今月のバイト" : "バイトシフト";
+      summaryLabels[2].textContent = viewMode === "month" ? "今月の予定" : "予定の合計";
+      summaryLabels[4].textContent = `${selectedDate.getMonth() + 1}月の給与見込み`;
+      const calendar = document.getElementById("calendar");
+      const hourPixels = Number.parseFloat(getComputedStyle(calendar).getPropertyValue("--hour-px")) || 60;
+      calendar.replaceChildren();
+      const heads = document.createElement("div");
+      heads.className = "day-heads";
+      heads.append(document.createElement("div"));
+      for (let day = 0; day < 7; day += 1) {
+        const date = addDays(weekStart, day);
+        const head = document.createElement("div");
+        head.className = `day-head${localDateString(date) === localDateString(now) ? " today" : ""}`;
+        head.innerHTML = `<span class="day-name">${weekdayNames[day]}</span><span class="day-number">${date.getDate()}</span>`;
+        heads.append(head);
+      }
+      calendar.append(heads);
+      const body = document.createElement("div");
+      body.className = "week-body";
+      const timeColumn = document.createElement("div");
+      timeColumn.className = "time-column";
+      for (let hour = 0; hour <= 24; hour += 1) {
+        const label = document.createElement("span");
+        label.className = "time-label";
+        label.style.top = `${hour * hourPixels}px`;
+        label.textContent = `${String(hour).padStart(2, "0")}:00`;
+        timeColumn.append(label);
+      }
+      body.append(timeColumn);
+      for (let day = 0; day < 7; day += 1) {
+        const date = addDays(weekStart, day);
+        const column = document.createElement("div");
+        column.className = `day-column${localDateString(date) === localDateString(now) ? " today" : ""}`;
+        for (let hour = 0; hour <= 24; hour += 1) {
+          const line = document.createElement("div");
+          line.className = "hour-line";
+          line.style.top = `${hour * hourPixels}px`;
+          column.append(line);
+          if (hour < 24) {
+            const halfLine = document.createElement("div");
+            halfLine.className = "hour-line half";
+            halfLine.style.top = `${hour * hourPixels + hourPixels / 2}px`;
+            column.append(halfLine);
+          }
+        }
+        visibleEvents.filter(event => event.dayIndex === day).forEach(event => {
+          const startMinutes = minutesFromTime(event.start);
+          const endMinutes = minutesFromTime(event.end);
+          if (endMinutes <= 0 || startMinutes >= 1440) return;
+          const block = document.createElement("button");
+          block.type = "button";
+          block.className = `event ${colors[event.type]}`;
+          block.style.top = `${Math.max(0, startMinutes) * hourPixels / 60}px`;
+          block.style.height = `${Math.max(18, (Math.min(1440, endMinutes) - Math.max(0, startMinutes)) * hourPixels / 60 - 3)}px`;
+          block.title = `${event.title} · ${durationLabel(event)}`;
+          block.innerHTML = `<span class="event-title"></span><span class="event-meta"></span>`;
+          block.querySelector(".event-title").textContent = event.title;
+          block.querySelector(".event-meta").textContent = durationLabel(event);
+          block.addEventListener("click", () => openModal(event));
+          column.append(block);
+        });
+        body.append(column);
+      }
+      calendar.append(body);
+      const calendarScroll = document.getElementById("calendarScroll");
+      calendarScroll.scrollTop = calendarScrollHour * hourPixels;
+      renderAgenda(visibleEvents, weekStart);
+      const monthView = document.getElementById("monthView");
+      renderMonth(monthView, selectedDate);
+      const isEmpty = visibleEvents.length === 0;
+      document.getElementById("emptyState").style.display = viewMode !== "month" && isEmpty ? "block" : "none";
+      document.getElementById("calendarScroll").style.display = viewMode === "week" && !isEmpty ? "block" : "none";
+      monthView.style.display = viewMode === "month" ? "block" : "none";
+      document.getElementById("agenda").style.display = viewMode === "agenda" && !isEmpty ? "block" : "none";
+    }
+    function eventsForMonth(date) {
+      const first = new Date(date.getFullYear(), date.getMonth(), 1);
+      const last = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      const results = [];
+      for (let day = 1; day <= last.getDate(); day += 1) results.push(...getEventsForDate(new Date(date.getFullYear(), date.getMonth(), day)));
+      return results;
+    }
+    function renderMonth(container, date) {
+      container.replaceChildren();
+      if (viewMode !== "month") return;
+      const grid = document.createElement("div");
+      grid.className = "month-grid";
+      weekdayNames.forEach(name => {
+        const heading = document.createElement("div");
+        heading.className = "month-weekday";
+        heading.textContent = name;
+        grid.append(heading);
+      });
+      const first = new Date(date.getFullYear(), date.getMonth(), 1);
+      const gridStart = weekStartOf(first);
+      const last = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      const dayCount = Math.ceil((first.getDay() + last.getDate()) / 7) * 7;
+      for (let index = 0; index < dayCount; index += 1) {
+        const cellDate = addDays(gridStart, index);
+        const dateKey = localDateString(cellDate);
+        const cell = document.createElement("div");
+        cell.className = `month-cell${cellDate.getMonth() !== date.getMonth() ? " outside" : ""}${dateKey === localDateString(now) ? " today" : ""}`;
+        cell.setAttribute("role", "button");
+        cell.setAttribute("tabindex", "0");
+        cell.setAttribute("aria-label", `${cellDate.getMonth() + 1}月${cellDate.getDate()}日の週を表示`);
+        const dayNumber = document.createElement("span");
+        dayNumber.className = "month-day-number";
+        dayNumber.textContent = String(cellDate.getDate());
+        const list = document.createElement("div");
+        list.className = "month-events";
+        getEventsForDate(cellDate).slice(0, 3).forEach(event => {
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = `month-event ${colors[event.type]}`;
+          item.textContent = `${event.start} ${event.title}`;
+          item.title = `${event.title} · ${durationLabel(event)}`;
+          item.addEventListener("click", click => {
+            click.stopPropagation();
+            openModal(event);
+          });
+          list.append(item);
+        });
+        const extraCount = getEventsForDate(cellDate).length - 3;
+        if (extraCount > 0) {
+          const more = document.createElement("span");
+          more.className = "month-event-count";
+          more.style.cssText = "color:var(--muted);font-size:9px;padding-left:3px";
+          more.textContent = `+${extraCount}件`;
+          list.append(more);
+        }
+        cell.append(dayNumber, list);
+        cell.addEventListener("click", () => {
+          selectedDate = cellDate;
+          setView("week");
+        });
+        cell.addEventListener("keydown", key => {
+          if (key.key === "Enter" || key.key === " ") {
+            key.preventDefault();
+            selectedDate = cellDate;
+            setView("week");
+          }
+        });
+        grid.append(cell);
+      }
+      container.append(grid);
+    }
+    function escapeXml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[character]);
+    }
+    function exportScheduleImage() {
+      const isMonth = viewMode === "month";
+      const width = 1400;
+      const title = isMonth
+        ? `${selectedDate.getFullYear()}年 ${selectedDate.getMonth() + 1}月`
+        : formatRange(weekStartOf(selectedDate), addDays(weekStartOf(selectedDate), 6));
+      const colorFor = { class: "#dcebe1", tutoring: "#f4dfd9", shift: "#f4dfd9", correction: "#f2e9c9", assignment: "#f2e9c9", study: "#dfeaf0", event: "#dfeaf0" };
+      const accentFor = { class: "#387a62", tutoring: "#d96b55", shift: "#d96b55", correction: "#a4862d", assignment: "#a4862d", study: "#4d7b9a", event: "#4d7b9a" };
+      const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${isMonth ? 1060 : 900}" viewBox="0 0 ${width} ${isMonth ? 1060 : 900}">`, `<rect width="100%" height="100%" fill="#fbfbf7"/>`, `<text x="40" y="48" font-family="sans-serif" font-size="15" fill="#387a62">KOMOREBI · CAMPUS PLANNER</text>`, `<text x="40" y="88" font-family="sans-serif" font-size="28" font-weight="700" fill="#202b2a">${escapeXml(title)}</text>`];
+      if (isMonth) {
+        const monthStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+        const gridStart = weekStartOf(monthStart);
+        const cells = Math.ceil((monthStart.getDay() + new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate()) / 7) * 7;
+        const cellWidth = 188;
+        const gridTop = 132;
+        const cellHeight = 145;
+        weekdayNames.forEach((name, day) => {
+          const x = 40 + day * cellWidth;
+          parts.push(`<text x="${x + cellWidth / 2}" y="${gridTop - 14}" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#78817d">${name}</text>`);
+        });
+        for (let index = 0; index < cells; index += 1) {
+          const date = addDays(gridStart, index);
+          const row = Math.floor(index / 7);
+          const column = index % 7;
+          const x = 40 + column * cellWidth;
+          const y = gridTop + row * cellHeight;
+          const dayEvents = getEventsForDate(date);
+          parts.push(`<rect x="${x}" y="${y}" width="${cellWidth}" height="${cellHeight}" fill="${date.getMonth() === selectedDate.getMonth() ? "#ffffff" : "#f4f5f1"}" stroke="#e2e6df"/>`);
+          parts.push(`<text x="${x + 8}" y="${y + 21}" font-family="sans-serif" font-size="13" fill="#202b2a">${date.getDate()}</text>`);
+          dayEvents.slice(0, 5).forEach((event, eventIndex) => {
+            const eventY = y + 31 + eventIndex * 20;
+            parts.push(`<rect x="${x + 6}" y="${eventY}" width="${cellWidth - 12}" height="17" rx="3" fill="${colorFor[event.type] ?? "#dfeaf0"}"/>`);
+            parts.push(`<text x="${x + 10}" y="${eventY + 12}" font-family="sans-serif" font-size="10" fill="${accentFor[event.type] ?? "#4d7b9a"}">${escapeXml(event.start + " " + event.title).slice(0, 70)}</text>`);
+          });
+          if (dayEvents.length > 5) parts.push(`<text x="${x + 8}" y="${y + 139}" font-family="sans-serif" font-size="10" fill="#78817d">+${dayEvents.length - 5}件</text>`);
+        }
+      } else {
+        const weekStart = weekStartOf(selectedDate);
+        const left = 72;
+        const top = 132;
+        const cellWidth = 184;
+        const hourHeight = 28;
+        const firstHour = 0;
+        for (let day = 0; day < 7; day += 1) {
+          const date = addDays(weekStart, day);
+          const x = left + day * cellWidth;
+          parts.push(`<rect x="${x}" y="${top}" width="${cellWidth}" height="${24 * hourHeight}" fill="#fff" stroke="#e2e6df"/>`);
+          parts.push(`<text x="${x + cellWidth / 2}" y="${top - 12}" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#202b2a">${weekdayNames[day]} ${date.getMonth() + 1}/${date.getDate()}</text>`);
+          for (let hour = 0; hour <= 24; hour += 1) {
+            const y = top + hour * hourHeight;
+            parts.push(`<line x1="${x}" y1="${y}" x2="${x + cellWidth}" y2="${y}" stroke="#edf0ea"/>`);
+            if (day === 0 && hour < 24) parts.push(`<text x="${left - 10}" y="${y + 15}" text-anchor="end" font-family="sans-serif" font-size="10" fill="#78817d">${String(firstHour + hour).padStart(2, "0")}:00</text>`);
+          }
+          getEventsForDate(date).forEach(event => {
+            const start = minutesFromTime(event.start) - firstHour * 60;
+            const end = minutesFromTime(event.end) - firstHour * 60;
+            if (end <= 0 || start >= 1440) return;
+            const y = top + Math.max(0, start) * hourHeight / 60;
+            const height = Math.max(18, (Math.min(1440, end) - Math.max(0, start)) * hourHeight / 60 - 2);
+            parts.push(`<rect x="${x + 5}" y="${y}" width="${cellWidth - 10}" height="${height}" rx="4" fill="${colorFor[event.type] ?? "#dfeaf0"}"/>`);
+            parts.push(`<text x="${x + 10}" y="${y + 15}" font-family="sans-serif" font-size="11" font-weight="700" fill="${accentFor[event.type] ?? "#4d7b9a"}">${escapeXml(event.title).slice(0, 70)}</text>`);
+            if (height > 34) parts.push(`<text x="${x + 10}" y="${y + 29}" font-family="sans-serif" font-size="9" fill="${accentFor[event.type] ?? "#4d7b9a"}">${escapeXml(durationLabel(event))}</text>`);
+          });
+        }
+      }
+      parts.push("</svg>");
+      const blob = new Blob([parts.join("")], { type: "image/svg+xml;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `komorebi-${isMonth ? "month" : "week"}-${localDateString(selectedDate)}.svg`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+    function renderAgenda(visibleEvents, weekStart) {
+      const agenda = document.getElementById("agenda");
+      agenda.replaceChildren();
+      for (let day = 0; day < 7; day += 1) {
+        const dayEvents = visibleEvents.filter(event => event.dayIndex === day);
+        if (!dayEvents.length) continue;
+        const date = addDays(weekStart, day);
+        const row = document.createElement("div");
+        row.className = "agenda-day";
+        row.innerHTML = `<div class="agenda-date">${weekdayNames[day]}曜日<strong>${date.getDate()}日</strong></div><div class="agenda-items"></div>`;
+        const list = row.querySelector(".agenda-items");
+        dayEvents.forEach(event => {
+          const item = document.createElement("button");
+          item.type = "button";
+          item.className = `agenda-item ${colors[event.type]}`;
+          item.innerHTML = `<span class="agenda-time"></span><span class="agenda-name"></span>`;
+          item.querySelector(".agenda-time").textContent = `${event.start} - ${event.end}`;
+          item.querySelector(".agenda-name").textContent = `${event.title}${event.location ? ` · ${event.location}` : ""}`;
+          item.addEventListener("click", () => openModal(event));
+          list.append(item);
+        });
+        agenda.append(row);
+      }
+    }
+    function openModal(event = null) {
+      editingId = event?.id ?? null;
+      const form = document.getElementById("eventForm");
+      form.reset();
+      document.getElementById("modalHeading").textContent = event ? "予定を編集" : "予定を追加";
+      document.getElementById("deleteEvent").hidden = !event;
+      document.getElementById("eventName").value = event?.title ?? "";
+      document.getElementById("eventType").value = event?.type ?? "class";
+      populateWorkOptions(event?.workId ?? defaultWorkId(event?.type ?? "tutoring"));
+      syncWorkFields(event?.type ?? "class", event?.workId);
+      document.getElementById("eventLocation").value = event?.location ?? "";
+      document.getElementById("eventInstructor").value = event?.instructor ?? "";
+      document.getElementById("eventCredits").value = event?.credits ?? 2;
+      document.getElementById("eventSemester").value = event?.semester ?? "";
+      document.getElementById("eventDate").value = event?.recurring
+        ? localDateString(addDays(weekStartOf(selectedDate), recurringDays(event)[0]))
+        : event?.date ?? localDateString(selectedDate);
+      document.getElementById("eventStart").value = event?.start ?? "09:00";
+      document.getElementById("eventEnd").value = event?.end ?? "10:30";
+      document.getElementById("eventReminder").checked = Boolean(event?.reminder);
+      document.getElementById("reminderMinutes").value = String(event?.reminderMinutes ?? 10);
+      document.getElementById("eventWorkUnits").value = event?.workUnits ?? 1;
+      document.getElementById("eventNotes").value = event?.notes ?? "";
+      document.getElementById("eventRepeat").checked = Boolean(event?.recurring);
+      const selectedDays = event?.recurring ? recurringDays(event) : [parseDate(document.getElementById("eventDate").value).getDay()];
+      document.querySelectorAll("[name='weekdays']").forEach(input => { input.checked = selectedDays.includes(Number(input.value)); });
+      document.getElementById("weekdayField").hidden = !event?.recurring;
+      document.getElementById("courseFields").style.display = (event?.type ?? "class") === "class" ? "contents" : "none";
+      document.getElementById("modalBackdrop").classList.add("open");
+      document.getElementById("eventName").focus();
+    }
+    function closeModal() { document.getElementById("modalBackdrop").classList.remove("open"); }
+    function goToToday() { selectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); renderCalendar(); }
+
+    weekdayNames.forEach((name, day) => {
+      const label = document.createElement("label");
+      label.className = "weekday-chip";
+      label.innerHTML = `<input type="checkbox" name="weekdays" value="${day}"><span>${name}</span>`;
+      document.getElementById("weekdayPicker").append(label);
+    });
+
+    function openBreakModal() {
+      const date = localDateString(selectedDate);
+      document.getElementById("breakStart").value = date;
+      document.getElementById("breakEnd").value = date;
+      document.getElementById("breakBackdrop").classList.add("open");
+      renderBreakList();
+    }
+    function closeBreakModal() { document.getElementById("breakBackdrop").classList.remove("open"); }
+    function renderBreakList() {
+      const list = document.getElementById("breakList");
+      list.replaceChildren();
+      [...breaks].sort((a, b) => a.start.localeCompare(b.start)).forEach(period => {
+        const row = document.createElement("div");
+        row.className = "break-item";
+        const details = document.createElement("div");
+        const name = document.createElement("strong");
+        name.textContent = period.name;
+        const dates = document.createElement("span");
+        dates.textContent = `${period.start} 〜 ${period.end}`;
+        details.append(name, dates);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "break-remove";
+        remove.textContent = "削除";
+        remove.addEventListener("click", () => {
+          breaks = breaks.filter(item => item.id !== period.id);
+          saveBreaks();
+          renderBreakList();
+          renderCalendar();
+        });
+        row.append(details, remove);
+        list.append(row);
+      });
+    }
+    function openSemesterModal() {
+      const fields = document.getElementById("semesterFields");
+      fields.replaceChildren();
+      for (let semester = 1; semester <= 4; semester += 1) {
+        const period = semesters.find(item => item.id === semester) ?? { start: "", end: "" };
+        const startField = document.createElement("div");
+        startField.className = "field";
+        startField.innerHTML = `<label for="semester${semester}Start">第${semester}学期・開始日</label><input id="semester${semester}Start" name="semester${semester}Start" type="date">`;
+        startField.querySelector("input").value = period.start;
+        const endField = document.createElement("div");
+        endField.className = "field";
+        endField.innerHTML = `<label for="semester${semester}End">第${semester}学期・終了日</label><input id="semester${semester}End" name="semester${semester}End" type="date">`;
+        endField.querySelector("input").value = period.end;
+        fields.append(startField, endField);
+      }
+      document.getElementById("semesterBackdrop").classList.add("open");
+    }
+    function closeSemesterModal() { document.getElementById("semesterBackdrop").classList.remove("open"); }
+    function populateWorkOptions(selectedId) {
+      const select = document.getElementById("eventWorkId");
+      select.replaceChildren();
+      wageProfiles.forEach(profile => {
+        const option = document.createElement("option");
+        option.value = profile.id;
+        option.textContent = profile.name;
+        select.append(option);
+      });
+      select.value = wageProfiles.some(profile => profile.id === selectedId) ? selectedId : wageProfiles[0].id;
+      updateWorkUnitVisibility();
+    }
+    function syncWorkFields(type, workId) {
+      const isWork = isWorkEvent({ type });
+      document.getElementById("workFields").hidden = !isWork;
+      document.getElementById("workUnitsField").hidden = !isWork;
+      if (isWork && workId) document.getElementById("eventWorkId").value = workId;
+      updateWorkUnitVisibility();
+    }
+    function updateWorkUnitVisibility() {
+      const profile = wageProfiles.find(item => item.id === document.getElementById("eventWorkId").value);
+      document.getElementById("workUnitsField").hidden = !profile || profile.mode !== "perUnit" || document.getElementById("workFields").hidden;
+    }
+    function openWageModal() {
+      const fields = document.getElementById("wageFields");
+      fields.replaceChildren();
+      const monthlyTotals = calculateMonthPay(selectedDate);
+      wageProfiles.forEach((profile, index) => {
+        const card = document.createElement("div");
+        card.className = "wage-profile";
+        card.innerHTML = `<div class="wage-profile-title">バイト ${index + 1}</div><div class="field"><label for="wageName${index}">勤務先名</label><input id="wageName${index}" name="wageName${index}" maxlength="40" required></div><div class="field"><label for="wageMode${index}">給与方式</label><select id="wageMode${index}" name="wageMode${index}"><option value="hourly">時給制</option><option value="perUnit">件数単価</option></select></div><div class="field"><label for="wageRate${index}">金額（円）</label><input id="wageRate${index}" name="wageRate${index}" type="number" min="0" step="1" required></div><div class="field"><label>今月の見込み</label><input value="${formatYen(monthlyTotals[index].amount)}" readonly></div>`;
+        card.querySelector(`[name="wageName${index}"]`).value = profile.name;
+        card.querySelector(`[name="wageMode${index}"]`).value = profile.mode;
+        card.querySelector(`[name="wageRate${index}"]`).value = profile.rate;
+        const mode = card.querySelector(`[name="wageMode${index}"]`);
+        const rate = card.querySelector(`[name="wageRate${index}"]`);
+        mode.addEventListener("change", () => { rate.previousElementSibling.textContent = mode.value === "hourly" ? "時給（円）" : "1件あたり（円）"; });
+        rate.previousElementSibling.textContent = profile.mode === "hourly" ? "時給（円）" : "1件あたり（円）";
+        fields.append(card);
+      });
+      const breakdown = document.getElementById("wageBreakdown");
+      breakdown.replaceChildren();
+      monthlyTotals.forEach(profile => {
+        const row = document.createElement("div");
+        row.className = "wage-breakdown-row";
+        const detail = profile.mode === "hourly" ? `${profile.hours.toFixed(1)}時間` : `${profile.units}件`;
+        row.innerHTML = `<span></span><strong></strong>`;
+        row.querySelector("span").textContent = `${profile.name} · ${detail}`;
+        row.querySelector("strong").textContent = formatYen(profile.amount);
+        breakdown.append(row);
+      });
+      document.getElementById("wageTotal").textContent = formatYen(monthlyTotals.reduce((sum, profile) => sum + profile.amount, 0));
+      document.getElementById("wageBackdrop").classList.add("open");
+    }
+    function closeWageModal() { document.getElementById("wageBackdrop").classList.remove("open"); }
+    function setView(mode) {
+      viewMode = mode;
+      document.getElementById("weekViewButton").classList.toggle("active", mode === "week");
+      document.getElementById("monthViewButton").classList.toggle("active", mode === "month");
+      document.getElementById("agendaViewButton").classList.toggle("active", mode === "agenda");
+      renderCalendar();
+    }
+    function moveCalendar(direction) {
+      if (viewMode !== "month") {
+        selectedDate = addDays(selectedDate, direction * 7);
+      } else {
+        const day = selectedDate.getDate();
+        selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + direction, 1);
+        selectedDate.setDate(Math.min(day, new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate()));
+      }
+      renderCalendar();
+    }
+
+    document.getElementById("addButton").addEventListener("click", () => openModal());
+    document.getElementById("mobileAdd").addEventListener("click", () => openModal());
+    document.getElementById("exportButton").addEventListener("click", () => {
+      const menu = document.getElementById("exportMenu");
+      menu.classList.toggle("open");
+      document.getElementById("exportButton").setAttribute("aria-expanded", String(menu.classList.contains("open")));
+    });
+    document.getElementById("exportPdf").addEventListener("click", () => {
+      document.getElementById("exportMenu").classList.remove("open");
+      window.print();
+    });
+    document.getElementById("exportImage").addEventListener("click", () => {
+      document.getElementById("exportMenu").classList.remove("open");
+      exportScheduleImage();
+    });
+    document.getElementById("enableNotifications").addEventListener("click", requestNotifications);
+    document.addEventListener("click", event => {
+      if (event.target.closest(".export-wrap")) return;
+      document.getElementById("exportMenu").classList.remove("open");
+      document.getElementById("exportButton").setAttribute("aria-expanded", "false");
+    });
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    document.getElementById("cancelModal").addEventListener("click", closeModal);
+    document.getElementById("modalBackdrop").addEventListener("click", event => { if (event.target.id === "modalBackdrop") closeModal(); });
+    document.getElementById("todayButton").addEventListener("click", goToToday);
+    document.getElementById("navToday").addEventListener("click", goToToday);
+    document.getElementById("breakSettingsButton").addEventListener("click", openBreakModal);
+    document.getElementById("breakMobileButton").addEventListener("click", openBreakModal);
+    document.getElementById("semesterSettingsButton").addEventListener("click", openSemesterModal);
+    document.getElementById("semesterMobileButton").addEventListener("click", openSemesterModal);
+    document.getElementById("wageSettingsButton").addEventListener("click", openWageModal);
+    document.getElementById("wageMobileButton").addEventListener("click", openWageModal);
+    document.getElementById("closeWageModal").addEventListener("click", closeWageModal);
+    document.getElementById("cancelWageModal").addEventListener("click", closeWageModal);
+    document.getElementById("wageBackdrop").addEventListener("click", event => { if (event.target.id === "wageBackdrop") closeWageModal(); });
+    document.getElementById("closeSemesterModal").addEventListener("click", closeSemesterModal);
+    document.getElementById("cancelSemesterModal").addEventListener("click", closeSemesterModal);
+    document.getElementById("closeBreakModal").addEventListener("click", closeBreakModal);
+    document.getElementById("cancelBreakModal").addEventListener("click", closeBreakModal);
+    document.getElementById("breakBackdrop").addEventListener("click", event => { if (event.target.id === "breakBackdrop") closeBreakModal(); });
+    document.getElementById("semesterBackdrop").addEventListener("click", event => { if (event.target.id === "semesterBackdrop") closeSemesterModal(); });
+    document.getElementById("eventRepeat").addEventListener("change", event => {
+      document.getElementById("weekdayField").hidden = !event.target.checked;
+      if (event.target.checked && !document.querySelector("[name='weekdays']:checked")) {
+        const day = parseDate(document.getElementById("eventDate").value).getDay();
+        const dayInput = document.querySelector(`[name='weekdays'][value='${day}']`);
+        if (dayInput) dayInput.checked = true;
+      }
+    });
+    document.getElementById("eventDate").addEventListener("change", event => {
+      if (!document.getElementById("eventRepeat").checked) return;
+      document.querySelectorAll("[name='weekdays']").forEach(input => { input.checked = false; });
+      const dayInput = document.querySelector(`[name='weekdays'][value='${parseDate(event.target.value).getDay()}']`);
+      if (dayInput) dayInput.checked = true;
+    });
+    document.getElementById("eventType").addEventListener("change", event => {
+      document.getElementById("courseFields").style.display = event.target.value === "class" ? "contents" : "none";
+      syncWorkFields(event.target.value, isWorkEvent({ type: event.target.value }) ? defaultWorkId(event.target.value) : null);
+      if (event.target.value === "assignment") {
+        document.getElementById("eventStart").value = "23:00";
+        document.getElementById("eventEnd").value = "23:30";
+        document.getElementById("eventReminder").checked = true;
+      } else if (event.target.value === "study") {
+        document.getElementById("eventStart").value = "19:00";
+        document.getElementById("eventEnd").value = "20:00";
+        document.getElementById("eventReminder").checked = false;
+      }
+    });
+    document.getElementById("eventWorkId").addEventListener("change", updateWorkUnitVisibility);
+    document.getElementById("prevWeek").addEventListener("click", () => moveCalendar(-1));
+    document.getElementById("nextWeek").addEventListener("click", () => moveCalendar(1));
+    document.getElementById("datePicker").addEventListener("change", event => { if (event.target.value) { selectedDate = parseDate(event.target.value); renderCalendar(); } });
+    document.getElementById("calendarScroll").addEventListener("scroll", event => {
+      const hourPixels = Number.parseFloat(getComputedStyle(document.getElementById("calendar")).getPropertyValue("--hour-px")) || 40;
+      calendarScrollHour = event.currentTarget.scrollTop / hourPixels;
+    });
+    document.querySelectorAll("[data-filter]").forEach(input => input.addEventListener("change", () => {
+      if (input.checked) activeFilters.add(input.dataset.filter);
+      else activeFilters.delete(input.dataset.filter);
+      renderCalendar();
+    }));
+    document.getElementById("weekViewButton").addEventListener("click", () => setView("week"));
+    document.getElementById("monthViewButton").addEventListener("click", () => setView("month"));
+    document.getElementById("agendaViewButton").addEventListener("click", () => setView("agenda"));
+    document.getElementById("eventForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const start = form.get("start");
+      const end = form.get("end");
+      const workType = isWorkEvent({ type: form.get("type") });
+      if (end === start || (end < start && !workType)) {
+        document.getElementById("eventEnd").setCustomValidity(workType ? "開始時刻と異なる時刻を選んでください。終了が開始より早い場合は翌日終了として計算します。" : "終了時刻は開始時刻より後にしてください。");
+        document.getElementById("eventEnd").reportValidity();
+        return;
+      }
+      document.getElementById("eventEnd").setCustomValidity("");
+      const date = parseDate(form.get("date"));
+      const recurring = form.get("repeat") === "on";
+      const days = [...document.querySelectorAll("[name='weekdays']:checked")].map(input => Number(input.value));
+      if (recurring && days.length === 0) {
+        document.getElementById("weekdayField").scrollIntoView({ block: "center" });
+        document.querySelector("[name='weekdays']").focus();
+        return;
+      }
+      const updated = {
+        id: editingId ?? `event-${Date.now()}`,
+        title: form.get("title").trim(), type: form.get("type"), location: form.get("location").trim(),
+        instructor: form.get("instructor").trim(), credits: form.get("type") === "class" ? Number(form.get("credits")) || 0 : 0,
+        semester: form.get("type") === "class" && form.get("semester") ? Number(form.get("semester")) : null,
+        workId: workType ? form.get("workId") : null,
+        workUnits: workType ? Math.max(0, Number(form.get("workUnits")) || 0) : 0,
+        reminder: form.get("reminder") === "on", reminderMinutes: Number(form.get("reminderMinutes")) || 10,
+        start, end, notes: form.get("notes").trim(), recurring,
+        ...(recurring ? { days } : { date: form.get("date") })
+      };
+      if (editingId) events = events.map(item => item.id === editingId ? updated : item);
+      else events.push(updated);
+      saveEvents();
+      selectedDate = date;
+      closeModal();
+      renderCalendar();
+      checkUpcomingReminders();
+    });
+    document.getElementById("wageForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      wageProfiles = wageProfiles.map((profile, index) => ({
+        ...profile,
+        name: String(form.get(`wageName${index}`)).trim() || `バイト${index + 1}`,
+        mode: form.get(`wageMode${index}`),
+        rate: Math.max(0, Number(form.get(`wageRate${index}`)) || 0)
+      }));
+      saveWageProfiles();
+      closeWageModal();
+      renderCalendar();
+      populateWorkOptions(document.getElementById("eventWorkId").value || "job1");
+    });
+    document.getElementById("deleteEvent").addEventListener("click", () => {
+      if (!editingId || !window.confirm("この予定を削除しますか？")) return;
+      events = events.filter(event => event.id !== editingId);
+      saveEvents();
+      closeModal();
+      renderCalendar();
+    });
+    document.getElementById("breakForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      if (form.get("end") < form.get("start")) {
+        document.getElementById("breakEnd").setCustomValidity("終了日は開始日以降にしてください。");
+        document.getElementById("breakEnd").reportValidity();
+        return;
+      }
+      document.getElementById("breakEnd").setCustomValidity("");
+      breaks.push({ id: `break-${Date.now()}`, name: form.get("name").trim(), start: form.get("start"), end: form.get("end") });
+      saveBreaks();
+      event.currentTarget.reset();
+      renderBreakList();
+      renderCalendar();
+    });
+    document.getElementById("semesterForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const updated = [];
+      for (let id = 1; id <= 4; id += 1) {
+        const start = form.get(`semester${id}Start`);
+        const end = form.get(`semester${id}End`);
+        if (start && end && end < start) {
+          document.getElementById(`semester${id}End`).setCustomValidity("終了日は開始日以降にしてください。");
+          document.getElementById(`semester${id}End`).reportValidity();
+          return;
+        }
+        document.getElementById(`semester${id}End`).setCustomValidity("");
+        updated.push({ id, start, end });
+      }
+      semesters = updated;
+      saveSemesters();
+      closeSemesterModal();
+      renderCalendar();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        closeModal();
+        closeBreakModal();
+        closeSemesterModal();
+        closeWageModal();
+        document.getElementById("exportMenu").classList.remove("open");
+        document.getElementById("exportButton").setAttribute("aria-expanded", "false");
+      }
+    });
+    if ("serviceWorker" in navigator && ["https:", "http:"].includes(location.protocol)) {
+      navigator.serviceWorker.register("./campus-planner-sw.js").catch(error => console.warn("オフライン対応を開始できませんでした。", error));
+    }
+    updateNotificationStatus();
+    checkUpcomingReminders();
+    window.setInterval(checkUpcomingReminders, 30000);
+    renderCalendar();
+  </script>
+</body>
+</html>
